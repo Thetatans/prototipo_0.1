@@ -1,0 +1,1183 @@
+<!-- templates/components/widgets.html -->
+<!-- Sistema de Widgets y Componentes Reutilizables -->
+
+<style>
+    /* Widget System */
+    .widget {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        transition: all 0.3s ease;
+        border: 1px solid #f0f0f0;
+    }
+    
+    .widget:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+    
+    .widget-header {
+        background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+        padding: 1rem 1.5rem;
+        border-bottom: 1px solid #dee2e6;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .widget-title {
+        font-weight: 600;
+        color: #495057;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .widget-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .widget-action {
+        background: none;
+        border: none;
+        color: #6c757d;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+    
+    .widget-action:hover {
+        background: rgba(0,0,0,0.1);
+        color: #495057;
+    }
+    
+    .widget-body {
+        padding: 1.5rem;
+    }
+    
+    .widget-footer {
+        background: #f8f9fa;
+        padding: 1rem 1.5rem;
+        border-top: 1px solid #dee2e6;
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+    
+    /* Quick Stats Widget */
+    .stats-widget {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+    }
+    
+    .stats-widget .widget-header {
+        background: rgba(255,255,255,0.1);
+        border-bottom-color: rgba(255,255,255,0.2);
+    }
+    
+    .stats-widget .widget-title {
+        color: white;
+    }
+    
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 1rem;
+    }
+    
+    .stat-item {
+        text-align: center;
+        padding: 1rem;
+        background: rgba(255,255,255,0.1);
+        border-radius: 8px;
+    }
+    
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        opacity: 0.9;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    /* Chart Widget */
+    .chart-widget {
+        position: relative;
+    }
+    
+    .chart-container {
+        height: 300px;
+        position: relative;
+    }
+    
+    .chart-loading {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 10;
+    }
+    
+    .chart-spinner {
+        width: 40px;
+        height: 40px;
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    /* Recent Activity Widget */
+    .activity-widget {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .activity-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 1rem;
+        padding: 1rem 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+    
+    .activity-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .activity-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .activity-title {
+        font-weight: 500;
+        color: #212529;
+        margin-bottom: 0.25rem;
+    }
+    
+    .activity-description {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 0.25rem;
+    }
+    
+    .activity-time {
+        font-size: 0.8rem;
+        color: #9e9e9e;
+    }
+    
+    /* Quick Actions Widget */
+    .quick-actions-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 1rem;
+    }
+    
+    .quick-action-card {
+        background: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 1.5rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: #6c757d;
+    }
+    
+    .quick-action-card:hover {
+        border-color: #007bff;
+        background: #e3f2fd;
+        color: #007bff;
+        transform: translateY(-2px);
+        text-decoration: none;
+    }
+    
+    .quick-action-icon {
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .quick-action-title {
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+    
+    /* Alert Widget */
+    .alert-widget {
+        border-left: 4px solid #dc3545;
+    }
+    
+    .alert-list {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    .alert-item-widget {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .alert-icon-widget {
+        width: 35px;
+        height: 35px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .alert-critical .alert-icon-widget {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .alert-warning .alert-icon-widget {
+        background: #ffc107;
+        color: #495057;
+    }
+    
+    .alert-info .alert-icon-widget {
+        background: #17a2b8;
+        color: white;
+    }
+    
+    /* Calendar Widget */
+    .calendar-widget-mini {
+        font-size: 0.85rem;
+    }
+    
+    .calendar-header-mini {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .calendar-nav-mini {
+        background: none;
+        border: none;
+        color: #007bff;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+    }
+    
+    .calendar-nav-mini:hover {
+        background: #f8f9fa;
+    }
+    
+    .calendar-grid-mini {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 2px;
+        text-align: center;
+    }
+    
+    .calendar-day-mini {
+        aspect-ratio: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        position: relative;
+        font-size: 0.8rem;
+    }
+    
+    .calendar-day-mini:hover {
+        background: #f8f9fa;
+    }
+    
+    .calendar-day-mini.today {
+        background: #007bff;
+        color: white;
+        font-weight: 600;
+    }
+    
+    .calendar-day-mini.has-event::after {
+        content: '';
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 4px;
+        height: 4px;
+        background: #ffc107;
+        border-radius: 50%;
+    }
+    
+    /* Progress Widget */
+    .progress-widget {
+        text-align: center;
+    }
+    
+    .progress-circle {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        margin: 0 auto 1rem;
+    }
+    
+    .progress-circle svg {
+        width: 100%;
+        height: 100%;
+        transform: rotate(-90deg);
+    }
+    
+    .progress-circle circle {
+        fill: none;
+        stroke-width: 8;
+        stroke-linecap: round;
+    }
+    
+    .progress-circle .background {
+        stroke: #e9ecef;
+    }
+    
+    .progress-circle .progress {
+        stroke: #28a745;
+        stroke-dasharray: 314;
+        stroke-dashoffset: 314;
+        transition: stroke-dashoffset 1s ease;
+    }
+    
+    .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #495057;
+    }
+    
+    .progress-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    /* Weather Widget */
+    .weather-widget {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+        border: none;
+    }
+    
+    .weather-widget .widget-header {
+        background: rgba(255,255,255,0.1);
+        border-bottom-color: rgba(255,255,255,0.2);
+    }
+    
+    .weather-current {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+    
+    .weather-temp {
+        font-size: 3rem;
+        font-weight: 700;
+    }
+    
+    .weather-icon {
+        font-size: 3rem;
+        opacity: 0.8;
+    }
+    
+    .weather-details {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .weather-detail {
+        background: rgba(255,255,255,0.1);
+        padding: 0.75rem;
+        border-radius: 6px;
+    }
+    
+    .weather-detail-value {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+    }
+    
+    .weather-detail-label {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .widget {
+            margin-bottom: 1rem;
+        }
+        
+        .widget-header {
+            padding: 0.75rem 1rem;
+        }
+        
+        .widget-body {
+            padding: 1rem;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .quick-actions-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .weather-current {
+            flex-direction: column;
+            text-align: center;
+            gap: 1rem;
+        }
+        
+        .weather-details {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    /* Widget Animations */
+    .widget-fade-in {
+        animation: fadeInUp 0.6s ease;
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .widget-slide-in {
+        animation: slideInRight 0.6s ease;
+    }
+    
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    /* Loading States */
+    .widget-loading {
+        opacity: 0.6;
+        pointer-events: none;
+        position: relative;
+    }
+    
+    .widget-loading::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255,255,255,0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .widget-loading::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 30px;
+        height: 30px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        z-index: 10;
+    }
+</style>
+
+<!-- Stats Widget -->
+<div class="widget stats-widget widget-fade-in">
+    <div class="widget-header">
+        <h6 class="widget-title">
+            <i class="bi bi-graph-up"></i>
+            Estadísticas Generales
+        </h6>
+        <div class="widget-actions">
+            <button class="widget-action" onclick="refreshStats()" title="Actualizar">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+        </div>
+    </div>
+    <div class="widget-body">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-number" id="totalMachines">{{ total_maquinas|default:0 }}</div>
+                <div class="stat-label">Total Máquinas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="operativeMachines">{{ maquinas_operativas|default:0 }}</div>
+                <div class="stat-label">Operativas</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="pendingOrders">{{ ordenes_pendientes|default:0 }}</div>
+                <div class="stat-label">Órdenes Pendientes</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="activeAlerts">{{ alertas_activas|default:0 }}</div>
+                <div class="stat-label">Alertas Activas</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart Widget -->
+<div class="widget chart-widget widget-slide-in">
+    <div class="widget-header">
+        <h6 class="widget-title">
+            <i class="bi bi-bar-chart"></i>
+            Uso de Máquinas - Últimos 7 Días
+        </h6>
+        <div class="widget-actions">
+            <button class="widget-action" onclick="toggleChartType()" title="Cambiar tipo">
+                <i class="bi bi-graph-up-arrow"></i>
+            </button>
+            <button class="widget-action" onclick="refreshChart()" title="Actualizar">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+        </div>
+    </div>
+    <div class="widget-body">
+        <div class="chart-container">
+            <div class="chart-loading" id="chartLoading" style="display: none;">
+                <div class="chart-spinner"></div>
+            </div>
+            <canvas id="usageChart"></canvas>
+        </div>
+    </div>
+    <div class="widget-footer">
+        Actualizado hace 5 minutos • Próxima actualización en 25 minutos
+    </div>
+</div>
+
+<!-- Recent Activity Widget -->
+<div class="widget activity-widget widget-fade-in">
+    <div class="widget-header">
+        <h6 class="widget-title">
+            <i class="bi bi-clock-history"></i>
+            Actividad Reciente
+        </h6>
+        <div class="widget-actions">
+            <button class="widget-action" onclick="markAllAsRead()" title="Marcar como leído">
+                <i class="bi bi-check2-all"></i>
+            </button>
+        </div>
+    </div>
+    <div class="widget-body">
+        <div class="activity-item">
+            <div class="activity-avatar" style="background: linear-gradient(135deg, #28a745, #20c997);">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">Mantenimiento Completado</div>
+                <div class="activity-description">Torno CNC-001 - Limpieza y lubricación</div>
+                <div class="activity-time">Hace 2 horas</div>
+            </div>
+        </div>
+        
+        <div class="activity-item">
+            <div class="activity-avatar" style="background: linear-gradient(135deg, #ffc107, #fd7e14);">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">Nueva Alerta</div>
+                <div class="activity-description">Fresadora FRE-002 requiere mantenimiento</div>
+                <div class="activity-time">Hace 4 horas</div>
+            </div>
+        </div>
+        
+        <div class="activity-item">
+            <div class="activity-avatar" style="background: linear-gradient(135deg, #17a2b8, #138496);">
+                <i class="bi bi-upload"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">Manual Subido</div>
+                <div class="activity-description">Manual Siemens 840D - Operación básica</div>
+                <div class="activity-time">Ayer</div>
+            </div>
+        </div>
+        
+        <div class="activity-item">
+            <div class="activity-avatar" style="background: linear-gradient(135deg, #6f42c1, #e83e8c);">
+                <i class="bi bi-plus-circle"></i>
+            </div>
+            <div class="activity-content">
+                <div class="activity-title">Máquina Registrada</div>
+                <div class="activity-description">Soldadora SOL-004 agregada al inventario</div>
+                <div class="activity-time">Hace 2 días</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions Widget -->
+<div class="widget widget-slide-in">
+    <div class="widget-header">
+        <h6 class="widget-title">
+            <i class="bi bi-lightning-charge"></i>
+            Acciones Rápidas
+        </h6>
+    </div>
+    <div class="widget-body">
+        <div class="quick-actions-grid">
+            <a href="{% url 'maquinaria:crear_maquina' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="bi bi-plus-circle"></i>
+                </div>
+                <div class="quick-action-title">Nueva Máquina</div>
+            </a>
+            
+            <a href="{% url 'mantenimiento:crear_orden' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="bi bi-clipboard-plus"></i>
+                </div>
+                <div class="quick-action-title">Orden de Trabajo</div>
+            </a>
+            
+            <a href="{% url 'documentos:subir_manual' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="bi bi-cloud-upload"></i>
+                </div>
+                <div class="quick-action-title">Subir Manual</div>
+            </a>
+            
+            <a href="{% url 'ia_assistant:chat_interface' %}" class="quick-action-card">
+                <div class="quick-action-icon">
+                    <i class="bi bi-robot"></i>
+                </div>
+                <div class="quick-action-title">Consultar IA</div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Widget -->
+<div class="widget alert-widget widget-fade-in">
+    <div class="widget-header">
+        <h6 class="widget-title">
+            <i class="bi bi-exclamation-triangle"></i>
+            Alertas Críticas
+        </h6>
+        <div class="widget-actions">
+            <button class="widget-action" onclick="refreshAlerts()" title="Actualizar">
+                <i class="bi bi-arrow-clockwise"></i>
+            </button>
+        </div>
+    </div>
+    <div class="widget-body">
+        <div class="alert-list">
+            <div class="alert-item-widget alert-critical">
+                <div class="alert-icon-widget">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">Mantenimiento Vencido</div>
+                    <small class="text-muted">Torno CNC-001 - Vencido hace 3 días</small>
+                </div>
+            </div>
+            
+            <div class="alert-item-widget alert-warning">
+                <div class="alert-icon-widget">
+                    <i class="bi bi-clock"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">Mantenimiento Próximo</div>
+                    <small class="text-muted">Fresadora FRE-002 - En 2 días</small>
+                </div>
+            </div>
+            
+            <div class="alert-item-widget alert-info">
+                <div class="alert-icon-widget">
+                    <i class="bi bi-info-circle"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">Componente a Revisar</div>
+                    <small class="text-muted">Soldadora SOL-003 - Filtro de aire</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="widget-footer">
+        <a href="{% url 'mantenimiento:alertas' %}" class="text-decoration-none">
+            Ver todas las alertas <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Calendar Widget -->
+<div class="widget calendar-widget-mini widget-slide-in">
+    <div class="widget-header">
+        <h6 class="widget-title">
+            <i class="bi bi-calendar3"></i>
+            Calendario de Mantenimiento
+        </h6>
+    </div>
+    <div class="widget-body">
+        <div class="calendar-header-mini">
+            <button class="calendar-nav-mini" onclick="previousMonth()">
+                <i class="bi bi-chevron-left"></i>
+            </button>
+            <strong id="currentMonth">Diciembre 2024</strong>
+            <button class="calendar-nav-mini" onclick="nextMonth()">
+                <i class="bi bi-chevron-right"></i>
+            </button>
+        </div>
+        
+        <div class="calendar-grid-mini" id="calendarGrid">
+            <!-- Calendar will be generated by JavaScript -->
+        </div>
+    </div>
+    <div class="widget-footer">
+        <a href="{% url 'mantenimiento:calendario' %}" class="text-decoration-none">
+            Ver calendario completo <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Progress Widget -->
+<div class="widget progress-widget widget-fade-in">
+    <div class="widget-header">
+        <h6 class="widget-title">
+            <i class="bi bi-pie-chart"></i>
+            Eficiencia del Mes
+        </h6>
+    </div>
+    <div class="widget-body">
+        <div class="progress-circle">
+            <svg>
+                <circle class="background" cx="60" cy="60" r="50"></circle>
+                <circle class="progress" cx="60" cy="60" r="50" id="efficiencyCircle"></circle>
+            </svg>
+            <div class="progress-text" id="efficiencyText">87%</div>
+        </div>
+        <div class="progress-label">Objetivos de mantenimiento cumplidos</div>
+    </div>
+    <div class="widget-footer">
+        Meta: 85% • Actual: 87% • Tendencia: ↗️ +2%
+    </div>
+</div>
+
+<!-- Weather Widget -->
+<div class="widget weather-widget widget-slide-in">
+    <div class="widget-header">
+        <h6 class="widget-title">
+            <i class="bi bi-cloud-sun"></i>
+            Clima - Bogotá
+        </h6>
+        <div class="widget-actions">
+            <button class="widget-action" onclick="refreshWeather()" title="Actualizar">
+                <i class="bi bi-arrow-clockwise text-white"></i>
+            </button>
+        </div>
+    </div>
+    <div class="widget-body">
+        <div class="weather-current">
+            <div>
+                <div class="weather-temp">18°C</div>
+                <div>Parcialmente nublado</div>
+            </div>
+            <div class="weather-icon">
+                <i class="bi bi-cloud-sun"></i>
+            </div>
+        </div>
+        
+        <div class="weather-details">
+            <div class="weather-detail">
+                <div class="weather-detail-value">65%</div>
+                <div class="weather-detail-label">Humedad</div>
+            </div>
+            <div class="weather-detail">
+                <div class="weather-detail-value">15 km/h</div>
+                <div class="weather-detail-label">Viento</div>
+            </div>
+            <div class="weather-detail">
+                <div class="weather-detail-value">85%</div>
+                <div class="weather-detail-label">Precipitación</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Widget System JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    initializeWidgets();
+});
+
+function initializeWidgets() {
+    initializeChart();
+    initializeCalendar();
+    initializeProgress();
+    startAutoRefresh();
+    animateWidgets();
+}
+
+function initializeChart() {
+    const ctx = document.getElementById('usageChart');
+    if (!ctx) return;
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            datasets: [{
+                label: 'Horas de Uso',
+                data: [8, 12, 6, 15, 10, 4, 2],
+                borderColor: '#007bff',
+                backgroundColor: 'rgba(0,123,255,0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        color: 'rgba(0,0,0,0.1)'
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+}
+
+function initializeCalendar() {
+    const calendarGrid = document.getElementById('calendarGrid');
+    if (!calendarGrid) return;
+    
+    const today = new Date();
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+    
+    generateMiniCalendar(currentYear, currentMonth);
+}
+
+function generateMiniCalendar(year, month) {
+    const monthNames = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    const firstDay = new Date(year, month, 1).getDay();
+    const today = new Date();
+    
+    document.getElementById('currentMonth').textContent = `${monthNames[month]} ${year}`;
+    
+    const calendarGrid = document.getElementById('calendarGrid');
+    calendarGrid.innerHTML = '';
+    
+    // Days of week headers
+    const dayHeaders = ['D', 'L', 'M', 'M', 'J', 'V', 'S'];
+    dayHeaders.forEach(day => {
+        const dayElement = document.createElement('div');
+        dayElement.textContent = day;
+        dayElement.style.fontWeight = '600';
+        dayElement.style.color = '#6c757d';
+        dayElement.style.padding = '0.25rem';
+        calendarGrid.appendChild(dayElement);
+    });
+    
+    // Empty cells for days before month starts
+    for (let i = 0; i < firstDay; i++) {
+        const emptyDay = document.createElement('div');
+        calendarGrid.appendChild(emptyDay);
+    }
+    
+    // Days of the month
+    for (let day = 1; day <= daysInMonth; day++) {
+        const dayElement = document.createElement('div');
+        dayElement.className = 'calendar-day-mini';
+        dayElement.textContent = day;
+        
+        const currentDate = new Date(year, month, day);
+        
+        // Mark today
+        if (currentDate.toDateString() === today.toDateString()) {
+            dayElement.classList.add('today');
+        }
+        
+        // Mark maintenance days (simulate)
+        if (day % 7 === 0 || day % 11 === 0) {
+            dayElement.classList.add('has-event');
+            dayElement.title = 'Mantenimiento programado';
+        }
+        
+        calendarGrid.appendChild(dayElement);
+    }
+}
+
+function initializeProgress() {
+    const progressCircle = document.getElementById('efficiencyCircle');
+    const progressText = document.getElementById('efficiencyText');
+    
+    if (!progressCircle) return;
+    
+    const efficiency = 87;
+    const circumference = 2 * Math.PI * 50;
+    const offset = circumference - (efficiency / 100) * circumference;
+    
+    progressCircle.style.strokeDasharray = circumference;
+    
+    setTimeout(() => {
+        progressCircle.style.strokeDashoffset = offset;
+        progressCircle.style.transition = 'stroke-dashoffset 2s ease-in-out';
+    }, 500);
+}
+
+function startAutoRefresh() {
+    // Refresh widgets every 5 minutes
+    setInterval(() => {
+        refreshStats();
+        refreshAlerts();
+    }, 300000); // 5 minutes
+}
+
+function animateWidgets() {
+    const widgets = document.querySelectorAll('.widget');
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.animation = 'fadeInUp 0.6s ease';
+            }
+        });
+    });
+    
+    widgets.forEach(widget => {
+        observer.observe(widget);
+    });
+}
+
+// Widget Action Functions
+function refreshStats() {
+    const statsWidget = document.querySelector('.stats-widget');
+    statsWidget.classList.add('widget-loading');
+    
+    // Simulate API call
+    setTimeout(() => {
+        // Update stats (would come from API)
+        const stats = {
+            totalMachines: Math.floor(Math.random() * 50) + 20,
+            operativeMachines: Math.floor(Math.random() * 30) + 15,
+            pendingOrders: Math.floor(Math.random() * 10) + 2,
+            activeAlerts: Math.floor(Math.random() * 5) + 1
+        };
+        
+        document.getElementById('totalMachines').textContent = stats.totalMachines;
+        document.getElementById('operativeMachines').textContent = stats.operativeMachines;
+        document.getElementById('pendingOrders').textContent = stats.pendingOrders;
+        document.getElementById('activeAlerts').textContent = stats.activeAlerts;
+        
+        statsWidget.classList.remove('widget-loading');
+        
+        // Show success notification
+        if (typeof showSuccess !== 'undefined') {
+            showSuccess('Estadísticas actualizadas', 'Datos refrescados correctamente');
+        }
+    }, 1500);
+}
+
+function refreshChart() {
+    const chartContainer = document.querySelector('.chart-container');
+    const loading = document.getElementById('chartLoading');
+    
+    loading.style.display = 'flex';
+    
+    // Simulate API call
+    setTimeout(() => {
+        loading.style.display = 'none';
+        
+        // Chart would be refreshed here
+        if (typeof showSuccess !== 'undefined') {
+            showSuccess('Gráfico actualizado', 'Datos del gráfico refrescados');
+        }
+    }, 2000);
+}
+
+function refreshAlerts() {
+    const alertWidget = document.querySelector('.alert-widget');
+    alertWidget.classList.add('widget-loading');
+    
+    setTimeout(() => {
+        alertWidget.classList.remove('widget-loading');
+        
+        if (typeof showInfo !== 'undefined') {
+            showInfo('Alertas actualizadas', 'No hay nuevas alertas críticas');
+        }
+    }, 1000);
+}
+
+function refreshWeather() {
+    const weatherWidget = document.querySelector('.weather-widget');
+    weatherWidget.classList.add('widget-loading');
+    
+    setTimeout(() => {
+        weatherWidget.classList.remove('widget-loading');
+        
+        if (typeof showInfo !== 'undefined') {
+            showInfo('Clima actualizado', 'Información meteorológica refrescada');
+        }
+    }, 1200);
+}
+
+function toggleChartType() {
+    // Toggle between line and bar chart
+    if (typeof showInfo !== 'undefined') {
+        showInfo('Tipo de gráfico', 'Cambiando a gráfico de barras...');
+    }
+}
+
+function markAllAsRead() {
+    const activityItems = document.querySelectorAll('.activity-item');
+    activityItems.forEach(item => {
+        item.style.opacity = '0.6';
+    });
+    
+    if (typeof showSuccess !== 'undefined') {
+        showSuccess('Actividad marcada', 'Todas las actividades marcadas como leídas');
+    }
+}
+
+function previousMonth() {
+    // Navigate to previous month
+    console.log('Navegando al mes anterior');
+}
+
+function nextMonth() {
+    // Navigate to next month
+    console.log('Navegando al mes siguiente');
+}
+
+// Widget Utility Functions
+function showWidget(widgetId) {
+    const widget = document.getElementById(widgetId);
+    if (widget) {
+        widget.style.display = 'block';
+        widget.classList.add('widget-fade-in');
+    }
+}
+
+function hideWidget(widgetId) {
+    const widget = document.getElementById(widgetId);
+    if (widget) {
+        widget.style.display = 'none';
+    }
+}
+
+function minimizeWidget(button) {
+    const widget = button.closest('.widget');
+    const body = widget.querySelector('.widget-body');
+    
+    if (body.style.display === 'none') {
+        body.style.display = 'block';
+        button.innerHTML = '<i class="bi bi-dash"></i>';
+    } else {
+        body.style.display = 'none';
+        button.innerHTML = '<i class="bi bi-plus"></i>';
+    }
+}
+
+function maximizeWidget(button) {
+    const widget = button.closest('.widget');
+    
+    if (widget.classList.contains('widget-fullscreen')) {
+        widget.classList.remove('widget-fullscreen');
+        widget.style.position = '';
+        widget.style.top = '';
+        widget.style.left = '';
+        widget.style.width = '';
+        widget.style.height = '';
+        widget.style.zIndex = '';
+        button.innerHTML = '<i class="bi bi-arrows-fullscreen"></i>';
+    } else {
+        widget.classList.add('widget-fullscreen');
+        widget.style.position = 'fixed';
+        widget.style.top = '20px';
+        widget.style.left = '20px';
+        widget.style.width = 'calc(100vw - 40px)';
+        widget.style.height = 'calc(100vh - 40px)';
+        widget.style.zIndex = '9999';
+        button.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
+    }
+}
+
+// Export widget functions for external use
+window.WidgetSystem = {
+    refresh: refreshStats,
+    showWidget: showWidget,
+    hideWidget: hideWidget,
+    minimizeWidget: minimizeWidget,
+    maximizeWidget: maximizeWidget
+};
+</script>

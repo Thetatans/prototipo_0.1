@@ -1,0 +1,1190 @@
+<!-- templates/components/contextual_help.html -->
+<style>
+    /* Contextual Help System */
+    .help-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 9999;
+        display: none;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+    
+    .help-overlay.show {
+        display: block;
+        opacity: 1;
+    }
+    
+    .help-spotlight {
+        position: absolute;
+        border: 3px solid #007bff;
+        border-radius: 8px;
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.8);
+        transition: all 0.3s ease;
+        z-index: 10000;
+    }
+    
+    .help-tooltip {
+        position: absolute;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        max-width: 320px;
+        z-index: 10001;
+        transform: scale(0.9);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    
+    .help-tooltip.show {
+        transform: scale(1);
+        opacity: 1;
+    }
+    
+    .help-tooltip::before {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-style: solid;
+    }
+    
+    .help-tooltip.top::before {
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 10px 10px 0 10px;
+        border-color: white transparent transparent transparent;
+    }
+    
+    .help-tooltip.bottom::before {
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 0 10px 10px 10px;
+        border-color: transparent transparent white transparent;
+    }
+    
+    .help-tooltip.left::before {
+        top: 50%;
+        left: 100%;
+        transform: translateY(-50%);
+        border-width: 10px 0 10px 10px;
+        border-color: transparent transparent transparent white;
+    }
+    
+    .help-tooltip.right::before {
+        top: 50%;
+        right: 100%;
+        transform: translateY(-50%);
+        border-width: 10px 10px 10px 0;
+        border-color: transparent white transparent transparent;
+    }
+    
+    .help-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .help-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .help-title {
+        font-weight: 600;
+        font-size: 1.1rem;
+        color: #212529;
+        margin: 0;
+    }
+    
+    .help-content {
+        color: #6c757d;
+        line-height: 1.5;
+        margin-bottom: 1rem;
+    }
+    
+    .help-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .help-progress {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+    
+    .help-progress-bar {
+        width: 60px;
+        height: 4px;
+        background: #e9ecef;
+        border-radius: 2px;
+        overflow: hidden;
+    }
+    
+    .help-progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        border-radius: 2px;
+        transition: width 0.3s ease;
+    }
+    
+    .help-nav {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .help-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .help-btn-primary {
+        background: #007bff;
+        color: white;
+    }
+    
+    .help-btn-primary:hover {
+        background: #0056b3;
+        transform: translateY(-1px);
+    }
+    
+    .help-btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .help-btn-secondary:hover {
+        background: #5a6268;
+    }
+    
+    .help-btn-outline {
+        background: transparent;
+        border: 1px solid #dee2e6;
+        color: #6c757d;
+    }
+    
+    .help-btn-outline:hover {
+        background: #f8f9fa;
+        border-color: #007bff;
+        color: #007bff;
+    }
+    
+    /* Help Button */
+    .help-float-btn {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
+        border: none;
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3);
+        z-index: 1000;
+        transition: all 0.3s ease;
+    }
+    
+    .help-float-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4);
+    }
+    
+    .help-float-btn.pulse {
+        animation: helpPulse 2s infinite;
+    }
+    
+    @keyframes helpPulse {
+        0% { box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3), 0 0 0 0 rgba(23, 162, 184, 0.7); }
+        70% { box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3), 0 0 0 10px rgba(23, 162, 184, 0); }
+        100% { box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3), 0 0 0 0 rgba(23, 162, 184, 0); }
+    }
+    
+    /* Inline Help */
+    .help-inline {
+        position: relative;
+        display: inline-block;
+    }
+    
+    .help-trigger {
+        background: none;
+        border: none;
+        color: #007bff;
+        font-size: 0.9rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+    
+    .help-trigger:hover {
+        background: rgba(0, 123, 255, 0.1);
+    }
+    
+    .help-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        border: 1px solid #e9ecef;
+        max-width: 280px;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(-50%) translateY(-10px);
+        transition: all 0.3s ease;
+    }
+    
+    .help-dropdown.show {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+    
+    .help-dropdown::before {
+        content: '';
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        border-width: 0 8px 8px 8px;
+        border-style: solid;
+        border-color: transparent transparent white transparent;
+    }
+    
+    /* Onboarding Checklist */
+    .onboarding-panel {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 320px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+        z-index: 1050;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+        border: 1px solid #e9ecef;
+    }
+    
+    .onboarding-panel.show {
+        transform: translateX(0);
+    }
+    
+    .onboarding-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid #e9ecef;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .onboarding-title {
+        font-weight: 600;
+        color: #212529;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .onboarding-close {
+        background: none;
+        border: none;
+        color: #6c757d;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+    
+    .onboarding-close:hover {
+        background: #f8f9fa;
+        color: #495057;
+    }
+    
+    .onboarding-body {
+        padding: 1.5rem;
+    }
+    
+    .onboarding-progress {
+        margin-bottom: 1.5rem;
+    }
+    
+    .onboarding-progress-text {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    .onboarding-progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+    
+    .onboarding-progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+    
+    .onboarding-checklist {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .onboarding-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f8f9fa;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .onboarding-item:hover {
+        background: #f8f9fa;
+        border-radius: 6px;
+        margin: 0 -0.5rem;
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+    
+    .onboarding-item:last-child {
+        border-bottom: none;
+    }
+    
+    .onboarding-checkbox {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #dee2e6;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.2s ease;
+    }
+    
+    .onboarding-item.completed .onboarding-checkbox {
+        background: #28a745;
+        border-color: #28a745;
+        color: white;
+    }
+    
+    .onboarding-text {
+        flex: 1;
+        font-size: 0.9rem;
+        color: #495057;
+    }
+    
+    .onboarding-item.completed .onboarding-text {
+        color: #6c757d;
+        text-decoration: line-through;
+    }
+    
+    /* Smart Tips */
+    .smart-tip {
+        background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+        border: 1px solid #bbdefb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .smart-tip::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(135deg, #2196f3, #9c27b0);
+    }
+    
+    .smart-tip-header {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .smart-tip-icon {
+        color: #2196f3;
+        font-size: 1.1rem;
+    }
+    
+    .smart-tip-title {
+        font-weight: 600;
+        color: #1976d2;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    .smart-tip-content {
+        font-size: 0.85rem;
+        color: #1565c0;
+        line-height: 1.4;
+    }
+    
+    .smart-tip-actions {
+        margin-top: 0.75rem;
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .smart-tip-btn {
+        padding: 0.25rem 0.75rem;
+        border: 1px solid #2196f3;
+        background: transparent;
+        color: #2196f3;
+        border-radius: 4px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .smart-tip-btn:hover {
+        background: #2196f3;
+        color: white;
+    }
+    
+    /* Quick Tour */
+    .quick-tour-btn {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+        color: white;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .quick-tour-btn:hover {
+        background: linear-gradient(135deg, #ee5a5a, #dc4545);
+        transform: translateY(-1px);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .onboarding-panel {
+            width: calc(100vw - 40px);
+            right: 20px;
+        }
+        
+        .help-tooltip {
+            max-width: calc(100vw - 40px);
+        }
+        
+        .help-float-btn {
+            bottom: 80px;
+        }
+    }
+</style>
+
+<!-- Help System HTML -->
+<div class="help-system">
+    <!-- Floating Help Button -->
+    <button class="help-float-btn pulse" id="helpFloatBtn" onclick="toggleHelpMode()" title="Ayuda">
+        <i class="bi bi-question-lg"></i>
+    </button>
+    
+    <!-- Help Overlay -->
+    <div class="help-overlay" id="helpOverlay">
+        <div class="help-spotlight" id="helpSpotlight"></div>
+        <div class="help-tooltip" id="helpTooltip">
+            <div class="help-header">
+                <div class="help-icon" id="helpIcon">
+                    <i class="bi bi-lightbulb"></i>
+                </div>
+                <h6 class="help-title" id="helpTitle">Título de Ayuda</h6>
+            </div>
+            <div class="help-content" id="helpContent">
+                Contenido de ayuda explicativo aquí...
+            </div>
+            <div class="help-actions">
+                <div class="help-progress">
+                    <span id="helpProgressText">1 de 5</span>
+                    <div class="help-progress-bar">
+                        <div class="help-progress-fill" id="helpProgressFill"></div>
+                    </div>
+                </div>
+                <div class="help-nav">
+                    <button class="help-btn help-btn-outline" onclick="skipTour()">Saltar</button>
+                    <button class="help-btn help-btn-secondary" onclick="previousStep()" id="helpPrevBtn" style="display: none;">Anterior</button>
+                    <button class="help-btn help-btn-primary" onclick="nextStep()" id="helpNextBtn">Siguiente</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Onboarding Checklist Panel -->
+    <div class="onboarding-panel" id="onboardingPanel">
+        <div class="onboarding-header">
+            <h6 class="onboarding-title">
+                <i class="bi bi-list-check text-primary"></i>
+                Configuración Inicial
+            </h6>
+            <button class="onboarding-close" onclick="hideOnboarding()">
+                <i class="bi bi-x"></i>
+            </button>
+        </div>
+        <div class="onboarding-body">
+            <div class="onboarding-progress">
+                <div class="onboarding-progress-text">
+                    <span>Progreso</span>
+                    <span id="onboardingProgressText">0 de 6</span>
+                </div>
+                <div class="onboarding-progress-bar">
+                    <div class="onboarding-progress-fill" id="onboardingProgressFill" style="width: 0%"></div>
+                </div>
+            </div>
+            
+            <ul class="onboarding-checklist" id="onboardingChecklist">
+                <li class="onboarding-item" data-task="profile" onclick="completeOnboardingTask('profile', '/usuarios/perfil/')">
+                    <div class="onboarding-checkbox">
+                        <i class="bi bi-check" style="display: none;"></i>
+                    </div>
+                    <div class="onboarding-text">Completar perfil de usuario</div>
+                </li>
+                
+                <li class="onboarding-item" data-task="machine" onclick="completeOnboardingTask('machine', '/maquinaria/crear/')">
+                    <div class="onboarding-checkbox">
+                        <i class="bi bi-check" style="display: none;"></i>
+                    </div>
+                    <div class="onboarding-text">Registrar primera máquina</div>
+                </li>
+                
+                <li class="onboarding-item" data-task="manual" onclick="completeOnboardingTask('manual', '/documentos/subir/')">
+                    <div class="onboarding-checkbox">
+                        <i class="bi bi-check" style="display: none;"></i>
+                    </div>
+                    <div class="onboarding-text">Subir primer manual</div>
+                </li>
+                
+                <li class="onboarding-item" data-task="order" onclick="completeOnboardingTask('order', '/mantenimiento/ordenes/crear/')">
+                    <div class="onboarding-checkbox">
+                        <i class="bi bi-check" style="display: none;"></i>
+                    </div>
+                    <div class="onboarding-text">Crear orden de trabajo</div>
+                </li>
+                
+                <li class="onboarding-item" data-task="chat" onclick="completeOnboardingTask('chat', '/ia/chat/')">
+                    <div class="onboarding-checkbox">
+                        <i class="bi bi-check" style="display: none;"></i>
+                    </div>
+                    <div class="onboarding-text">Probar asistente IA</div>
+                </li>
+                
+                <li class="onboarding-item" data-task="tour" onclick="startGuidedTour()">
+                    <div class="onboarding-checkbox">
+                        <i class="bi bi-check" style="display: none;"></i>
+                    </div>
+                    <div class="onboarding-text">Realizar tour guiado</div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Smart Tips Templates -->
+<template id="smartTipTemplate">
+    <div class="smart-tip">
+        <div class="smart-tip-header">
+            <i class="bi bi-lightbulb smart-tip-icon"></i>
+            <h6 class="smart-tip-title">Consejo Inteligente</h6>
+        </div>
+        <div class="smart-tip-content"></div>
+        <div class="smart-tip-actions">
+            <button class="smart-tip-btn" onclick="applyTip()">Aplicar</button>
+            <button class="smart-tip-btn" onclick="dismissTip()">Cerrar</button>
+        </div>
+    </div>
+</template>
+
+<!-- Inline Help Examples -->
+<div class="help-examples" style="display: none;">
+    <!-- Example of inline help -->
+    <div class="form-group">
+        <label class="form-label">
+            Código de Máquina
+            <div class="help-inline">
+                <button class="help-trigger" onclick="toggleInlineHelp(this)">
+                    <i class="bi bi-question-circle"></i>
+                </button>
+                <div class="help-dropdown">
+                    <strong>Código de Inventario</strong><br>
+                    Use un formato consistente como "TOR-001" para tornos, "FRE-001" para fresadoras, etc.
+                </div>
+            </div>
+        </label>
+        <input type="text" class="form-control" placeholder="Ej: TOR-001">
+    </div>
+</div>
+
+<script>
+class HelpSystem {
+    constructor() {
+        this.currentStep = 0;
+        this.tourSteps = [];
+        this.isHelpMode = false;
+        this.onboardingTasks = [];
+        this.contextualTips = new Map();
+        this.init();
+    }
+    
+    init() {
+        this.loadOnboardingProgress();
+        this.setupContextualHelp();
+        this.initializeSmartTips();
+        this.checkFirstVisit();
+        
+        // Auto-show onboarding for new users
+        if (this.shouldShowOnboarding()) {
+            setTimeout(() => this.showOnboarding(), 2000);
+        }
+    }
+    
+    // Tour System
+    defineTourSteps() {
+        this.tourSteps = [
+            {
+                element: '.sidebar',
+                title: '🧭 Navegación Principal',
+                content: 'Use el menú lateral para navegar entre las diferentes secciones del sistema: máquinas, mantenimiento, documentos y asistente IA.',
+                position: 'right',
+                icon: 'bi-compass'
+            },
+            {
+                element: '.quick-stats, .metric-card:first-child',
+                title: '📊 Dashboard de Métricas',
+                content: 'Aquí puede ver un resumen rápido del estado de todas sus máquinas y órdenes de trabajo.',
+                position: 'bottom',
+                icon: 'bi-graph-up'
+            },
+            {
+                element: '.search-bar, #globalSearch',
+                title: '🔍 Búsqueda Global',
+                content: 'Use la búsqueda global para encontrar rápidamente máquinas, órdenes de trabajo o documentos.',
+                position: 'bottom',
+                icon: 'bi-search'
+            },
+            {
+                element: '.quick-action-card:first-child, .btn-primary:first-of-type',
+                title: '⚡ Acciones Rápidas',
+                content: 'Acceda a las funciones más utilizadas directamente desde el dashboard.',
+                position: 'top',
+                icon: 'bi-lightning'
+            },
+            {
+                element: '.notification-bell, [data-bs-toggle="dropdown"]',
+                title: '🔔 Notificaciones',
+                content: 'Manténgase al día con alertas de mantenimiento, órdenes vencidas y actualizaciones del sistema.',
+                position: 'left',
+                icon: 'bi-bell'
+            }
+        ];
+    }
+    
+    startGuidedTour() {
+        this.defineTourSteps();
+        this.currentStep = 0;
+        this.isHelpMode = true;
+        this.showHelpOverlay();
+        this.showCurrentStep();
+        this.completeOnboardingTask('tour');
+    }
+    
+    showCurrentStep() {
+        if (this.currentStep >= this.tourSteps.length) {
+            this.completeTour();
+            return;
+        }
+        
+        const step = this.tourSteps[this.currentStep];
+        const element = document.querySelector(step.element);
+        
+        if (!element) {
+            console.warn(`Element not found: ${step.element}`);
+            this.nextStep();
+            return;
+        }
+        
+        this.highlightElement(element);
+        this.showTooltip(step, element);
+        this.updateProgress();
+    }
+    
+    highlightElement(element) {
+        const rect = element.getBoundingClientRect();
+        const spotlight = document.getElementById('helpSpotlight');
+        
+        spotlight.style.left = (rect.left - 10) + 'px';
+        spotlight.style.top = (rect.top - 10) + 'px';
+        spotlight.style.width = (rect.width + 20) + 'px';
+        spotlight.style.height = (rect.height + 20) + 'px';
+        
+        // Scroll element into view
+        element.scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+    }
+    
+    showTooltip(step, element) {
+        const tooltip = document.getElementById('helpTooltip');
+        const rect = element.getBoundingClientRect();
+        
+        // Update tooltip content
+        document.getElementById('helpTitle').textContent = step.title;
+        document.getElementById('helpContent').textContent = step.content;
+        document.getElementById('helpIcon').innerHTML = `<i class="${step.icon}"></i>`;
+        
+        // Position tooltip
+        this.positionTooltip(tooltip, rect, step.position);
+        
+        // Show tooltip
+        setTimeout(() => {
+            tooltip.classList.add('show');
+        }, 300);
+    }
+    
+    positionTooltip(tooltip, elementRect, position) {
+        tooltip.className = `help-tooltip ${position}`;
+        
+        const tooltipRect = tooltip.getBoundingClientRect();
+        const padding = 20;
+        
+        switch(position) {
+            case 'top':
+                tooltip.style.left = (elementRect.left + elementRect.width / 2 - tooltipRect.width / 2) + 'px';
+                tooltip.style.top = (elementRect.top - tooltipRect.height - padding) + 'px';
+                break;
+            case 'bottom':
+                tooltip.style.left = (elementRect.left + elementRect.width / 2 - tooltipRect.width / 2) + 'px';
+                tooltip.style.top = (elementRect.bottom + padding) + 'px';
+                break;
+            case 'left':
+                tooltip.style.left = (elementRect.left - tooltipRect.width - padding) + 'px';
+                tooltip.style.top = (elementRect.top + elementRect.height / 2 - tooltipRect.height / 2) + 'px';
+                break;
+            case 'right':
+                tooltip.style.left = (elementRect.right + padding) + 'px';
+                tooltip.style.top = (elementRect.top + elementRect.height / 2 - tooltipRect.height / 2) + 'px';
+                break;
+        }
+        
+        // Ensure tooltip stays in viewport
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        
+        if (tooltip.offsetLeft < 0) {
+            tooltip.style.left = '10px';
+        } else if (tooltip.offsetLeft + tooltipRect.width > viewportWidth) {
+            tooltip.style.left = (viewportWidth - tooltipRect.width - 10) + 'px';
+        }
+        
+        if (tooltip.offsetTop < 0) {
+            tooltip.style.top = '10px';
+        } else if (tooltip.offsetTop + tooltipRect.height > viewportHeight) {
+            tooltip.style.top = (viewportHeight - tooltipRect.height - 10) + 'px';
+        }
+    }
+    
+    nextStep() {
+        this.currentStep++;
+        if (this.currentStep < this.tourSteps.length) {
+            this.showCurrentStep();
+        } else {
+            this.completeTour();
+        }
+    }
+    
+    previousStep() {
+        if (this.currentStep > 0) {
+            this.currentStep--;
+            this.showCurrentStep();
+        }
+    }
+    
+    skipTour() {
+        this.completeTour();
+    }
+    
+    completeTour() {
+        this.hideHelpOverlay();
+        this.isHelpMode = false;
+        this.showCompletionMessage();
+    }
+    
+    updateProgress() {
+        const progress = ((this.currentStep + 1) / this.tourSteps.length) * 100;
+        document.getElementById('helpProgressFill').style.width = progress + '%';
+        document.getElementById('helpProgressText').textContent = `${this.currentStep + 1} de ${this.tourSteps.length}`;
+        
+        // Update navigation buttons
+        const prevBtn = document.getElementById('helpPrevBtn');
+        const nextBtn = document.getElementById('helpNextBtn');
+        
+        prevBtn.style.display = this.currentStep > 0 ? 'block' : 'none';
+        nextBtn.textContent = this.currentStep === this.tourSteps.length - 1 ? 'Finalizar' : 'Siguiente';
+    }
+    
+    showHelpOverlay() {
+        document.getElementById('helpOverlay').classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    hideHelpOverlay() {
+        document.getElementById('helpOverlay').classList.remove('show');
+        document.getElementById('helpTooltip').classList.remove('show');
+        document.body.style.overflow = '';
+    }
+    
+    // Onboarding System
+    shouldShowOnboarding() {
+        const hasSeenOnboarding = localStorage.getItem('sena_onboarding_seen');
+        const completedTasks = this.getCompletedTasks();
+        return !hasSeenOnboarding || completedTasks.length < 3;
+    }
+    
+    showOnboarding() {
+        document.getElementById('onboardingPanel').classList.add('show');
+        localStorage.setItem('sena_onboarding_seen', 'true');
+    }
+    
+    hideOnboarding() {
+        document.getElementById('onboardingPanel').classList.remove('show');
+    }
+    
+    loadOnboardingProgress() {
+        const completed = this.getCompletedTasks();
+        completed.forEach(task => {
+            this.markTaskCompleted(task);
+        });
+        this.updateOnboardingProgress();
+    }
+    
+    completeOnboardingTask(task, url = null) {
+        if (url && !this.isTaskCompleted(task)) {
+            // Navigate to the URL to complete the task
+            window.location.href = url;
+            return;
+        }
+        
+        const completed = this.getCompletedTasks();
+        if (!completed.includes(task)) {
+            completed.push(task);
+            localStorage.setItem('sena_onboarding_tasks', JSON.stringify(completed));
+        }
+        
+        this.markTaskCompleted(task);
+        this.updateOnboardingProgress();
+        
+        // Show success notification
+        if (typeof showSuccess !== 'undefined') {
+            showSuccess('¡Tarea Completada!', 'Has completado una tarea de configuración inicial');
+        }
+    }
+    
+    markTaskCompleted(task) {
+        const item = document.querySelector(`[data-task="${task}"]`);
+        if (item) {
+            item.classList.add('completed');
+            item.querySelector('.bi-check').style.display = 'block';
+        }
+    }
+    
+    isTaskCompleted(task) {
+        return this.getCompletedTasks().includes(task);
+    }
+    
+    getCompletedTasks() {
+        const stored = localStorage.getItem('sena_onboarding_tasks');
+        return stored ? JSON.parse(stored) : [];
+    }
+    
+    updateOnboardingProgress() {
+        const totalTasks = document.querySelectorAll('.onboarding-item').length;
+        const completedTasks = this.getCompletedTasks().length;
+        const progress = (completedTasks / totalTasks) * 100;
+        
+        document.getElementById('onboardingProgressFill').style.width = progress + '%';
+        document.getElementById('onboardingProgressText').textContent = `${completedTasks} de ${totalTasks}`;
+        
+        // Hide onboarding when all tasks are completed
+        if (completedTasks === totalTasks) {
+            setTimeout(() => {
+                this.hideOnboarding();
+                this.showCompletionMessage();
+            }, 2000);
+        }
+    }
+    
+    // Contextual Help
+    setupContextualHelp() {
+        // Define contextual help for different pages
+        this.contextualTips.set('/maquinaria/', [
+            {
+                trigger: '#searchInput',
+                title: 'Búsqueda Inteligente',
+                content: 'Puede buscar por código, nombre, marca o cualquier característica de la máquina.'
+            },
+            {
+                trigger: '.filter-input',
+                title: 'Filtros Avanzados',
+                content: 'Use los filtros para encontrar rápidamente las máquinas que necesita.'
+            }
+        ]);
+        
+        this.contextualTips.set('/mantenimiento/', [
+            {
+                trigger: '.priority-card',
+                title: 'Prioridades de Mantenimiento',
+                content: 'Las tarjetas rojas requieren atención inmediata, las amarillas son próximas.'
+            }
+        ]);
+        
+        this.showContextualTips();
+    }
+    
+    showContextualTips() {
+        const currentPath = window.location.pathname;
+        const tips = this.contextualTips.get(currentPath);
+        
+        if (tips) {
+            tips.forEach((tip, index) => {
+                setTimeout(() => this.showSmartTip(tip), index * 5000);
+            });
+        }
+    }
+    
+    showSmartTip(tip) {
+        const element = document.querySelector(tip.trigger);
+        if (!element) return;
+        
+        const template = document.getElementById('smartTipTemplate');
+        const tipElement = template.content.cloneNode(true);
+        
+        tipElement.querySelector('.smart-tip-title').textContent = tip.title;
+        tipElement.querySelector('.smart-tip-content').textContent = tip.content;
+        
+        // Insert tip near the target element
+        element.parentNode.insertBefore(tipElement, element.nextSibling);
+        
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+            const insertedTip = element.parentNode.querySelector('.smart-tip');
+            if (insertedTip) {
+                insertedTip.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => insertedTip.remove(), 300);
+            }
+        }, 10000);
+    }
+    
+    // Inline Help
+    toggleInlineHelp(trigger) {
+        const dropdown = trigger.nextElementSibling;
+        const isVisible = dropdown.classList.contains('show');
+        
+        // Hide all other dropdowns
+        document.querySelectorAll('.help-dropdown.show').forEach(d => {
+            d.classList.remove('show');
+        });
+        
+        if (!isVisible) {
+            dropdown.classList.add('show');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                dropdown.classList.remove('show');
+            }, 5000);
+        }
+    }
+    
+    // Utility Methods
+    checkFirstVisit() {
+        const isFirstVisit = !localStorage.getItem('sena_first_visit');
+        if (isFirstVisit) {
+            localStorage.setItem('sena_first_visit', 'false');
+            setTimeout(() => {
+                if (typeof showInfo !== 'undefined') {
+                    showInfo(
+                        '¡Bienvenido al Sistema SENA!',
+                        'Presiona el botón de ayuda (?) para un tour guiado del sistema.',
+                        { duration: 8000 }
+                    );
+                }
+            }, 3000);
+        }
+    }
+    
+    showCompletionMessage() {
+        if (typeof showSuccess !== 'undefined') {
+            showSuccess(
+                '🎉 ¡Felicitaciones!',
+                'Has completado la configuración inicial del sistema. ¡Ya estás listo para usar todas las funciones!',
+                { duration: 6000 }
+            );
+        }
+    }
+    
+    initializeSmartTips() {
+        // Show tips based on user behavior
+        this.observeUserBehavior();
+    }
+    
+    observeUserBehavior() {
+        // Track idle time and show helpful tips
+        let idleTime = 0;
+        let idleInterval;
+        
+        const resetIdleTime = () => {
+            idleTime = 0;
+        };
+        
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetIdleTime, true);
+        });
+        
+        idleInterval = setInterval(() => {
+            idleTime++;
+            if (idleTime >= 30) { // 30 seconds of inactivity
+                this.showIdleTip();
+                idleTime = 0;
+            }
+        }, 1000);
+    }
+    
+    showIdleTip() {
+        const tips = [
+            'Consejo: Use Ctrl+K para búsqueda rápida',
+            'Consejo: Haga clic derecho en las máquinas para acciones rápidas',
+            'Consejo: El asistente IA puede ayudarlo con cualquier duda técnica',
+            'Consejo: Configure alertas automáticas de mantenimiento'
+        ];
+        
+        const randomTip = tips[Math.floor(Math.random() * tips.length)];
+        
+        if (typeof showInfo !== 'undefined') {
+            showInfo('💡 Tip Inteligente', randomTip, { duration: 5000 });
+        }
+    }
+}
+
+// Initialize Help System
+const helpSystem = new HelpSystem();
+
+// Global Functions
+function toggleHelpMode() {
+    if (helpSystem.isHelpMode) {
+        helpSystem.hideHelpOverlay();
+        helpSystem.isHelpMode = false;
+    } else {
+        helpSystem.startGuidedTour();
+    }
+}
+
+function nextStep() {
+    helpSystem.nextStep();
+}
+
+function previousStep() {
+    helpSystem.previousStep();
+}
+
+function skipTour() {
+    helpSystem.skipTour();
+}
+
+function completeOnboardingTask(task, url) {
+    helpSystem.completeOnboardingTask(task, url);
+}
+
+function hideOnboarding() {
+    helpSystem.hideOnboarding();
+}
+
+function startGuidedTour() {
+    helpSystem.startGuidedTour();
+}
+
+function toggleInlineHelp(trigger) {
+    helpSystem.toggleInlineHelp(trigger);
+}
+
+// Auto-complete onboarding tasks based on page visits
+window.addEventListener('load', function() {
+    const path = window.location.pathname;
+    
+    // Auto-complete tasks based on current page
+    if (path.includes('/usuarios/perfil/')) {
+        helpSystem.completeOnboardingTask('profile');
+    } else if (path.includes('/maquinaria/crear/')) {
+        helpSystem.completeOnboardingTask('machine');
+    } else if (path.includes('/documentos/subir/')) {
+        helpSystem.completeOnboardingTask('manual');
+    } else if (path.includes('/mantenimiento/ordenes/')) {
+        helpSystem.completeOnboardingTask('order');
+    } else if (path.includes('/ia/chat/')) {
+        helpSystem.completeOnboardingTask('chat');
+    }
+});
+
+// CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-10px); }
+    }
+`;
+document.head.appendChild(style);
+</script>

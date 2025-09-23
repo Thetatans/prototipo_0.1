@@ -1,0 +1,1262 @@
+<!-- templates/components/ui_components.html -->
+<!-- Sistema de Componentes UI Reutilizables para SENA -->
+
+<style>
+:root {
+    /* Colores del Sistema de Diseño SENA */
+    --sena-primary: #007bff;
+    --sena-primary-dark: #0056b3;
+    --sena-secondary: #6c757d;
+    --sena-success: #28a745;
+    --sena-warning: #ffc107;
+    --sena-danger: #dc3545;
+    --sena-info: #17a2b8;
+    --sena-light: #f8f9fa;
+    --sena-dark: #212529;
+    
+    /* Gradientes */
+    --sena-gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --sena-gradient-success: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    --sena-gradient-warning: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --sena-gradient-info: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    
+    /* Espaciados */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-xxl: 3rem;
+    
+    /* Radios */
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-round: 50%;
+    
+    /* Sombras */
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 8px rgba(0,0,0,0.1);
+    --shadow-lg: 0 8px 16px rgba(0,0,0,0.15);
+    --shadow-xl: 0 12px 24px rgba(0,0,0,0.2);
+    
+    /* Transiciones */
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.2s ease;
+    --transition-slow: 0.3s ease;
+}
+
+/* Componente: SENA Card */
+.sena-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(0,0,0,0.05);
+    overflow: hidden;
+    transition: var(--transition-base);
+}
+
+.sena-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.sena-card-header {
+    padding: var(--spacing-lg);
+    background: var(--sena-light);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sena-card-title {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--sena-dark);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.sena-card-body {
+    padding: var(--spacing-lg);
+}
+
+.sena-card-footer {
+    padding: var(--spacing-md) var(--spacing-lg);
+    background: var(--sena-light);
+    border-top: 1px solid rgba(0,0,0,0.05);
+}
+
+/* Componente: SENA Button */
+.sena-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    border: 2px solid transparent;
+    font-weight: 500;
+    font-size: 0.9rem;
+    text-decoration: none;
+    cursor: pointer;
+    transition: var(--transition-base);
+    position: relative;
+    overflow: hidden;
+    min-height: 44px; /* Touch-friendly */
+}
+
+.sena-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.sena-btn:hover::before {
+    left: 100%;
+}
+
+.sena-btn-primary {
+    background: var(--sena-gradient-primary);
+    color: white;
+}
+
+.sena-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,123,255,0.3);
+    color: white;
+}
+
+.sena-btn-secondary {
+    background: var(--sena-secondary);
+    color: white;
+}
+
+.sena-btn-outline {
+    background: transparent;
+    border-color: var(--sena-primary);
+    color: var(--sena-primary);
+}
+
+.sena-btn-outline:hover {
+    background: var(--sena-primary);
+    color: white;
+}
+
+.sena-btn-sm {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: 0.8rem;
+    min-height: 32px;
+}
+
+.sena-btn-lg {
+    padding: var(--spacing-md) var(--spacing-xl);
+    font-size: 1.1rem;
+    min-height: 52px;
+}
+
+.sena-btn-icon-only {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: var(--radius-round);
+    justify-content: center;
+}
+
+.sena-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Componente: SENA Badge */
+.sena-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sena-badge-success { background: var(--sena-success); color: white; }
+.sena-badge-warning { background: var(--sena-warning); color: var(--sena-dark); }
+.sena-badge-danger { background: var(--sena-danger); color: white; }
+.sena-badge-info { background: var(--sena-info); color: white; }
+.sena-badge-light { background: var(--sena-light); color: var(--sena-dark); border: 1px solid rgba(0,0,0,0.1); }
+
+/* Componente: SENA Input */
+.sena-input-group {
+    position: relative;
+    margin-bottom: var(--spacing-lg);
+}
+
+.sena-input {
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 2px solid #e9ecef;
+    border-radius: var(--radius-md);
+    font-size: 1rem;
+    transition: var(--transition-base);
+    background: white;
+}
+
+.sena-input:focus {
+    outline: none;
+    border-color: var(--sena-primary);
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+}
+
+.sena-input-icon {
+    position: absolute;
+    left: var(--spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    z-index: 2;
+}
+
+.sena-input-icon + .sena-input {
+    padding-left: 3rem;
+}
+
+.sena-label {
+    display: block;
+    font-weight: 600;
+    color: var(--sena-dark);
+    margin-bottom: var(--spacing-sm);
+    font-size: 0.9rem;
+}
+
+.sena-label-required::after {
+    content: '*';
+    color: var(--sena-danger);
+    margin-left: var(--spacing-xs);
+}
+
+.sena-help-text {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: var(--spacing-xs);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+/* Componente: SENA Alert */
+.sena-alert {
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    border-left: 4px solid;
+    margin-bottom: var(--spacing-lg);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    position: relative;
+    animation: slideInDown 0.3s ease;
+}
+
+.sena-alert-success {
+    background: rgba(40, 167, 69, 0.1);
+    border-left-color: var(--sena-success);
+    color: #155724;
+}
+
+.sena-alert-warning {
+    background: rgba(255, 193, 7, 0.1);
+    border-left-color: var(--sena-warning);
+    color: #856404;
+}
+
+.sena-alert-danger {
+    background: rgba(220, 53, 69, 0.1);
+    border-left-color: var(--sena-danger);
+    color: #721c24;
+}
+
+.sena-alert-info {
+    background: rgba(23, 162, 184, 0.1);
+    border-left-color: var(--sena-info);
+    color: #0c5460;
+}
+
+.sena-alert-icon {
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+
+.sena-alert-content {
+    flex: 1;
+}
+
+.sena-alert-title {
+    font-weight: 600;
+    margin-bottom: var(--spacing-xs);
+}
+
+.sena-alert-close {
+    position: absolute;
+    top: var(--spacing-md);
+    right: var(--spacing-md);
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: inherit;
+    opacity: 0.7;
+}
+
+.sena-alert-close:hover {
+    opacity: 1;
+}
+
+/* Componente: SENA Loading */
+.sena-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-xxl);
+    text-align: center;
+}
+
+.sena-loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--sena-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--spacing-lg);
+}
+
+.sena-loading-dots {
+    display: flex;
+    gap: var(--spacing-xs);
+}
+
+.sena-loading-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--sena-primary);
+    animation: bounce 1.4s ease-in-out infinite both;
+}
+
+.sena-loading-dot:nth-child(1) { animation-delay: -0.32s; }
+.sena-loading-dot:nth-child(2) { animation-delay: -0.16s; }
+
+/* Componente: SENA Modal */
+.sena-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1050;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-lg);
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-base);
+}
+
+.sena-modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sena-modal-content {
+    background: white;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.9) translateY(20px);
+    transition: var(--transition-base);
+}
+
+.sena-modal.show .sena-modal-content {
+    transform: scale(1) translateY(0);
+}
+
+.sena-modal-header {
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sena-modal-title {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.sena-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #6c757d;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-round);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition-base);
+}
+
+.sena-modal-close:hover {
+    background: var(--sena-light);
+    color: var(--sena-dark);
+}
+
+.sena-modal-body {
+    padding: var(--spacing-lg);
+}
+
+.sena-modal-footer {
+    padding: var(--spacing-lg);
+    border-top: 1px solid rgba(0,0,0,0.05);
+    display: flex;
+    gap: var(--spacing-sm);
+    justify-content: flex-end;
+}
+
+/* Componente: SENA Progress */
+.sena-progress {
+    background: #e9ecef;
+    border-radius: var(--radius-md);
+    height: 8px;
+    overflow: hidden;
+    position: relative;
+}
+
+.sena-progress-bar {
+    background: var(--sena-gradient-primary);
+    height: 100%;
+    border-radius: var(--radius-md);
+    transition: width 0.6s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.sena-progress-bar::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background-image: linear-gradient(
+        -45deg,
+        rgba(255, 255, 255, .2) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, .2) 50%,
+        rgba(255, 255, 255, .2) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 1rem 1rem;
+    animation: progress-bar-stripes 1s linear infinite;
+}
+
+/* Componente: SENA Tabs */
+.sena-tabs {
+    border-bottom: 2px solid #e9ecef;
+    margin-bottom: var(--spacing-lg);
+}
+
+.sena-tabs-nav {
+    display: flex;
+    gap: 0;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.sena-tab {
+    padding: var(--spacing-md) var(--spacing-lg);
+    color: #6c757d;
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 2px solid transparent;
+    transition: var(--transition-base);
+    cursor: pointer;
+    position: relative;
+}
+
+.sena-tab:hover {
+    color: var(--sena-primary);
+    text-decoration: none;
+}
+
+.sena-tab.active {
+    color: var(--sena-primary);
+    border-bottom-color: var(--sena-primary);
+}
+
+.sena-tab-badge {
+    background: var(--sena-danger);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.2em 0.5em;
+    border-radius: var(--radius-sm);
+    margin-left: var(--spacing-xs);
+}
+
+/* Componente: SENA Empty State */
+.sena-empty {
+    text-align: center;
+    padding: var(--spacing-xxl);
+    color: #6c757d;
+}
+
+.sena-empty-icon {
+    font-size: 4rem;
+    margin-bottom: var(--spacing-lg);
+    opacity: 0.5;
+}
+
+.sena-empty-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--sena-dark);
+    margin-bottom: var(--spacing-sm);
+}
+
+.sena-empty-text {
+    margin-bottom: var(--spacing-lg);
+}
+
+/* Componente: SENA Stats Card */
+.sena-stats-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    box-shadow: var(--shadow-md);
+    text-align: center;
+    border: 1px solid rgba(0,0,0,0.05);
+    transition: var(--transition-base);
+    position: relative;
+    overflow: hidden;
+}
+
+.sena-stats-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--sena-gradient-primary);
+}
+
+.sena-stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.sena-stats-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: var(--radius-round);
+    margin: 0 auto var(--spacing-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+    background: var(--sena-gradient-primary);
+}
+
+.sena-stats-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--sena-dark);
+    margin-bottom: var(--spacing-xs);
+    line-height: 1;
+}
+
+.sena-stats-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: var(--spacing-sm);
+}
+
+.sena-stats-change {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+}
+
+.sena-stats-change.positive {
+    background: rgba(40, 167, 69, 0.1);
+    color: var(--sena-success);
+}
+
+.sena-stats-change.negative {
+    background: rgba(220, 53, 69, 0.1);
+    color: var(--sena-danger);
+}
+
+/* Animaciones */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+    0%, 80%, 100% {
+        transform: scale(0);
+    } 40% {
+        transform: scale(1);
+    }
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes progress-bar-stripes {
+    from { background-position: 1rem 0; }
+    to { background-position: 0 0; }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Utilidades de Animación */
+.sena-animate-fade-in {
+    animation: fadeIn 0.3s ease;
+}
+
+.sena-animate-slide-up {
+    animation: slideUp 0.3s ease;
+}
+
+.sena-animate-bounce {
+    animation: bounce 0.6s ease;
+}
+
+/* Utilidades de Espaciado */
+.sena-p-xs { padding: var(--spacing-xs); }
+.sena-p-sm { padding: var(--spacing-sm); }
+.sena-p-md { padding: var(--spacing-md); }
+.sena-p-lg { padding: var(--spacing-lg); }
+.sena-p-xl { padding: var(--spacing-xl); }
+
+.sena-m-xs { margin: var(--spacing-xs); }
+.sena-m-sm { margin: var(--spacing-sm); }
+.sena-m-md { margin: var(--spacing-md); }
+.sena-m-lg { margin: var(--spacing-lg); }
+.sena-m-xl { margin: var(--spacing-xl); }
+
+/* Utilidades Responsive */
+@media (max-width: 768px) {
+    .sena-d-mobile-none { display: none; }
+    .sena-d-mobile-block { display: block; }
+    .sena-d-mobile-flex { display: flex; }
+    
+    .sena-modal-content {
+        margin: var(--spacing-sm);
+        max-width: calc(100% - 2rem);
+    }
+    
+    .sena-btn-responsive {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (min-width: 769px) {
+    .sena-d-desktop-none { display: none; }
+    .sena-d-desktop-block { display: block; }
+    .sena-d-desktop-flex { display: flex; }
+}
+
+/* Dark Mode Support */
+@media (prefers-color-scheme: dark) {
+    .sena-dark-mode {
+        --sena-light: #2d3748;
+        --sena-dark: #f7fafc;
+    }
+    
+    .sena-dark-mode .sena-card {
+        background: #2d3748;
+        color: #f7fafc;
+        border-color: #4a5568;
+    }
+    
+    .sena-dark-mode .sena-input {
+        background: #2d3748;
+        color: #f7fafc;
+        border-color: #4a5568;
+    }
+    
+    .sena-dark-mode .sena-input:focus {
+        border-color: var(--sena-primary);
+    }
+}
+</style>
+
+<!-- Template de Ejemplos de Componentes -->
+<div class="container-fluid py-4" style="background: #f8f9fa;">
+    <!-- Título de la Página de Componentes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-1">🎨 Sistema de Componentes SENA</h1>
+            <p class="text-muted">Componentes reutilizables para interfaces consistentes</p>
+        </div>
+    </div>
+    
+    <!-- Cards Ejemplo -->
+    <div class="row mb-4">
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="sena-card sena-animate-slide-up">
+                <div class="sena-card-header">
+                    <h6 class="sena-card-title">
+                        <i class="bi bi-gear"></i>
+                        Máquina TOR-001
+                    </h6>
+                    <div class="sena-badge sena-badge-success">
+                        <i class="bi bi-check-circle"></i>
+                        Operativa
+                    </div>
+                </div>
+                <div class="sena-card-body">
+                    <p class="mb-3">Torno CNC Siemens 840D en perfecto estado de funcionamiento.</p>
+                    <div class="sena-progress mb-2">
+                        <div class="sena-progress-bar" style="width: 85%;"></div>
+                    </div>
+                    <small class="text-muted">85% de eficiencia operativa</small>
+                </div>
+                <div class="sena-card-footer">
+                    <button class="sena-btn sena-btn-primary sena-btn-sm">
+                        <i class="bi bi-eye"></i>
+                        Ver Detalles
+                    </button>
+                    <button class="sena-btn sena-btn-outline sena-btn-sm">
+                        <i class="bi bi-wrench"></i>
+                        Mantenimiento
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="sena-stats-card sena-animate-slide-up" style="animation-delay: 0.1s;">
+                <div class="sena-stats-icon">
+                    <i class="bi bi-clipboard-check"></i>
+                </div>
+                <div class="sena-stats-value">24</div>
+                <div class="sena-stats-label">Órdenes Completadas</div>
+                <div class="sena-stats-change positive">
+                    <i class="bi bi-arrow-up"></i>
+                    +12% este mes
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="sena-card sena-animate-slide-up" style="animation-delay: 0.2s;">
+                <div class="sena-card-header">
+                    <h6 class="sena-card-title">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        Alertas Recientes
+                    </h6>
+                </div>
+                <div class="sena-card-body">
+                    <div class="sena-alert sena-alert-warning">
+                        <div class="sena-alert-icon">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div class="sena-alert-content">
+                            <div class="sena-alert-title">Mantenimiento Próximo</div>
+                            <p class="mb-0">La máquina FRE-002 requiere mantenimiento en 2 días.</p>
+                        </div>
+                        <button class="sena-alert-close">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Formularios Ejemplo -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="sena-card">
+                <div class="sena-card-header">
+                    <h6 class="sena-card-title">
+                        <i class="bi bi-plus-circle"></i>
+                        Formulario Ejemplo
+                    </h6>
+                </div>
+                <div class="sena-card-body">
+                    <div class="sena-input-group">
+                        <label class="sena-label sena-label-required">Código de Máquina</label>
+                        <div style="position: relative;">
+                            <i class="bi bi-upc-scan sena-input-icon"></i>
+                            <input type="text" class="sena-input" placeholder="Ej: TOR-001">
+                        </div>
+                        <div class="sena-help-text">
+                            <i class="bi bi-info-circle"></i>
+                            Código único de identificación
+                        </div>
+                    </div>
+                    
+                    <div class="sena-input-group">
+                        <label class="sena-label">Tipo de Máquina</label>
+                        <select class="sena-input">
+                            <option>Seleccionar tipo...</option>
+                            <option>Torno CNC</option>
+                            <option>Fresadora</option>
+                            <option>Soldadora</option>
+                        </select>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button class="sena-btn sena-btn-primary">
+                            <i class="bi bi-check"></i>
+                            Guardar
+                        </button>
+                        <button class="sena-btn sena-btn-secondary">
+                            <i class="bi bi-x"></i>
+                            Cancelar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="sena-card">
+                <div class="sena-card-header">
+                    <h6 class="sena-card-title">
+                        <i class="bi bi-list"></i>
+                        Tabs Ejemplo
+                    </h6>
+                </div>
+                <div class="sena-card-body">
+                    <div class="sena-tabs">
+                        <ul class="sena-tabs-nav">
+                            <li>
+                                <a href="#" class="sena-tab active">
+                                    Activas
+                                    <span class="sena-tab-badge">3</span>
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="sena-tab">
+                                    Completadas
+                                </a>
+                            </li>
+                            <li>
+                                <a href="#" class="sena-tab">
+                                    Archivadas
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <div class="tab-content">
+                        <p>Contenido de la pestaña activa. Aquí se mostraría la información correspondiente.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Estados Especiales -->
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <div class="sena-card">
+                <div class="sena-card-header">
+                    <h6 class="sena-card-title">Estado de Carga</h6>
+                </div>
+                <div class="sena-card-body">
+                    <div class="sena-loading">
+                        <div class="sena-loading-spinner"></div>
+                        <p class="mb-0">Cargando información...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="sena-card">
+                <div class="sena-card-header">
+                    <h6 class="sena-card-title">Estado Vacío</h6>
+                </div>
+                <div class="sena-card-body">
+                    <div class="sena-empty">
+                        <div class="sena-empty-icon">
+                            <i class="bi bi-inbox"></i>
+                        </div>
+                        <div class="sena-empty-title">No hay datos</div>
+                        <div class="sena-empty-text">No se encontraron registros para mostrar.</div>
+                        <button class="sena-btn sena-btn-primary">
+                            <i class="bi bi-plus"></i>
+                            Agregar Nuevo
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-3">
+            <div class="sena-card">
+                <div class="sena-card-header">
+                    <h6 class="sena-card-title">Alertas del Sistema</h6>
+                </div>
+                <div class="sena-card-body">
+                    <div class="sena-alert sena-alert-success">
+                        <div class="sena-alert-icon">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="sena-alert-content">
+                            <div class="sena-alert-title">¡Éxito!</div>
+                            <p class="mb-0">La operación se completó correctamente.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="sena-alert sena-alert-danger">
+                        <div class="sena-alert-icon">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                        <div class="sena-alert-content">
+                            <div class="sena-alert-title">Error Crítico</div>
+                            <p class="mb-0">Se requiere atención inmediata.</p>
+                        </div>
+                        <button class="sena-alert-close">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para Componentes -->
+<script>
+// Componente: SENA Modal
+class SenaModal {
+    constructor(selector) {
+        this.modal = document.querySelector(selector);
+        this.init();
+    }
+    
+    init() {
+        const closeBtn = this.modal.querySelector('.sena-modal-close');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => this.hide());
+        }
+        
+        this.modal.addEventListener('click', (e) => {
+            if (e.target === this.modal) {
+                this.hide();
+            }
+        });
+    }
+    
+    show() {
+        this.modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+    
+    hide() {
+        this.modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+}
+
+// Componente: SENA Tabs
+class SenaTabs {
+    constructor(selector) {
+        this.tabsContainer = document.querySelector(selector);
+        this.init();
+    }
+    
+    init() {
+        const tabs = this.tabsContainer.querySelectorAll('.sena-tab');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.activateTab(tab);
+            });
+        });
+    }
+    
+    activateTab(activeTab) {
+        const tabs = this.tabsContainer.querySelectorAll('.sena-tab');
+        tabs.forEach(tab => tab.classList.remove('active'));
+        activeTab.classList.add('active');
+    }
+}
+
+// Componente: SENA Alert
+class SenaAlert {
+    constructor(selector) {
+        this.alerts = document.querySelectorAll(selector);
+        this.init();
+    }
+    
+    init() {
+        this.alerts.forEach(alert => {
+            const closeBtn = alert.querySelector('.sena-alert-close');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    this.close(alert);
+                });
+            }
+        });
+    }
+    
+    close(alert) {
+        alert.style.opacity = '0';
+        alert.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            alert.remove();
+        }, 300);
+    }
+    
+    static create(type, title, message, container = document.body) {
+        const alert = document.createElement('div');
+        alert.className = `sena-alert sena-alert-${type}`;
+        alert.innerHTML = `
+            <div class="sena-alert-icon">
+                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'danger' ? 'x-circle' : 'info-circle'}"></i>
+            </div>
+            <div class="sena-alert-content">
+                <div class="sena-alert-title">${title}</div>
+                <p class="mb-0">${message}</p>
+            </div>
+            <button class="sena-alert-close">
+                <i class="bi bi-x"></i>
+            </button>
+        `;
+        
+        container.appendChild(alert);
+        
+        const closeBtn = alert.querySelector('.sena-alert-close');
+        closeBtn.addEventListener('click', () => {
+            alert.style.opacity = '0';
+            alert.style.transform = 'translateX(100%)';
+            setTimeout(() => alert.remove(), 300);
+        });
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (alert.parentNode) {
+                closeBtn.click();
+            }
+        }, 5000);
+        
+        return alert;
+    }
+}
+
+// Utilidades del Sistema de Componentes
+const SenaUI = {
+    // Mostrar loading
+    showLoading: (container) => {
+        const loading = document.createElement('div');
+        loading.className = 'sena-loading';
+        loading.innerHTML = `
+            <div class="sena-loading-spinner"></div>
+            <p class="mb-0">Cargando...</p>
+        `;
+        container.appendChild(loading);
+        return loading;
+    },
+    
+    // Ocultar loading
+    hideLoading: (loading) => {
+        if (loading && loading.parentNode) {
+            loading.parentNode.removeChild(loading);
+        }
+    },
+    
+    // Crear toast notification
+    toast: (type, message, duration = 3000) => {
+        const toast = document.createElement('div');
+        toast.className = `sena-alert sena-alert-${type}`;
+        toast.style.position = 'fixed';
+        toast.style.top = '20px';
+        toast.style.right = '20px';
+        toast.style.zIndex = '9999';
+        toast.style.minWidth = '300px';
+        
+        toast.innerHTML = `
+            <div class="sena-alert-icon">
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+            </div>
+            <div class="sena-alert-content">
+                <p class="mb-0">${message}</p>
+            </div>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateX(100%)';
+            setTimeout(() => toast.remove(), 300);
+        }, duration);
+    },
+    
+    // Confirmar acción
+    confirm: (message, callback) => {
+        const modal = document.createElement('div');
+        modal.className = 'sena-modal show';
+        modal.innerHTML = `
+            <div class="sena-modal-content">
+                <div class="sena-modal-header">
+                    <h6 class="sena-modal-title">Confirmar Acción</h6>
+                </div>
+                <div class="sena-modal-body">
+                    <p>${message}</p>
+                </div>
+                <div class="sena-modal-footer">
+                    <button class="sena-btn sena-btn-secondary" data-action="cancel">Cancelar</button>
+                    <button class="sena-btn sena-btn-primary" data-action="confirm">Confirmar</button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        document.body.style.overflow = 'hidden';
+        
+        modal.addEventListener('click', (e) => {
+            const action = e.target.dataset.action;
+            if (action === 'confirm') {
+                callback(true);
+            } else if (action === 'cancel') {
+                callback(false);
+            }
+            
+            if (action) {
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    modal.remove();
+                    document.body.style.overflow = '';
+                }, 300);
+            }
+        });
+    }
+};
+
+// Inicializar componentes al cargar la página
+document.addEventListener('DOMContentLoaded', () => {
+    // Inicializar tabs
+    document.querySelectorAll('.sena-tabs').forEach(tabs => {
+        new SenaTabs(tabs);
+    });
+    
+    // Inicializar alerts
+    new SenaAlert('.sena-alert');
+    
+    // Inicializar modales
+    document.querySelectorAll('.sena-modal').forEach(modal => {
+        new SenaModal(modal);
+    });
+    
+    // Agregar funcionalidad de ripple a botones
+    document.querySelectorAll('.sena-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.classList.add('ripple');
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+});
+
+// Exportar para uso global
+window.SenaUI = SenaUI;
+window.SenaModal = SenaModal;
+window.SenaTabs = SenaTabs;
+window.SenaAlert = SenaAlert;
+</script>
+
+<!-- CSS adicional para efectos -->
+<style>
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.4);
+    transform: scale(0);
+    animation: ripple-animation 0.6s linear;
+    pointer-events: none;
+}
+
+@keyframes ripple-animation {
+    to {
+        transform: scale(4);
+        opacity: 0;
+    }
+}
+
+.sena-btn {
+    position: relative;
+    overflow: hidden;
+}
+</style>

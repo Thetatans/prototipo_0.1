@@ -1,0 +1,1064 @@
+<!-- templates/components/smart_search.html -->
+<!-- Sistema de Búsqueda Inteligente Global -->
+<style>
+    .smart-search-container {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .smart-search-input {
+        width: 100%;
+        padding: 1rem 1.5rem 1rem 3.5rem;
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        font-size: 1rem;
+        background: white;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        outline: none;
+    }
+    
+    .smart-search-input:focus {
+        border-color: #007bff;
+        box-shadow: 0 6px 30px rgba(0,123,255,0.15);
+        transform: translateY(-1px);
+    }
+    
+    .smart-search-icon {
+        position: absolute;
+        left: 1.2rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-size: 1.2rem;
+        z-index: 2;
+    }
+    
+    .smart-search-results {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.12);
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(-10px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+        margin-top: 0.5rem;
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+    
+    .smart-search-results.show {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+    }
+    
+    .search-section {
+        padding: 1rem 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .search-section:last-child {
+        border-bottom: none;
+    }
+    
+    .search-section-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.75rem;
+        padding: 0 1.5rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .search-result-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.75rem 1.5rem;
+        text-decoration: none;
+        color: #212529;
+        transition: all 0.2s ease;
+        border-radius: 8px;
+        margin: 0 0.5rem;
+        cursor: pointer;
+    }
+    
+    .search-result-item:hover {
+        background: #f8f9fa;
+        text-decoration: none;
+        color: #212529;
+        transform: translateX(4px);
+    }
+    
+    .search-result-item.selected {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    .search-result-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: white;
+        flex-shrink: 0;
+    }
+    
+    .search-result-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .search-result-title {
+        font-weight: 600;
+        margin-bottom: 0.25rem;
+        font-size: 0.95rem;
+    }
+    
+    .search-result-subtitle {
+        font-size: 0.8rem;
+        color: #6c757d;
+        margin-bottom: 0;
+    }
+    
+    .search-result-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 0.2rem 0.6rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .search-shortcuts {
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-radius: 0 0 16px 16px;
+    }
+    
+    .search-shortcut {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.4rem 0.8rem;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        color: #6c757d;
+        text-decoration: none;
+        margin: 0.25rem 0.25rem 0.25rem 0;
+        transition: all 0.2s ease;
+    }
+    
+    .search-shortcut:hover {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+        text-decoration: none;
+    }
+    
+    .search-loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        color: #6c757d;
+    }
+    
+    .search-loading-spinner {
+        width: 24px;
+        height: 24px;
+        border: 2px solid #e9ecef;
+        border-top: 2px solid #007bff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin-right: 1rem;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .search-empty {
+        text-align: center;
+        padding: 3rem 1.5rem;
+        color: #6c757d;
+    }
+    
+    .search-empty-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .search-filters {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        background: #f8f9fa;
+        border-radius: 16px 16px 0 0;
+        border-bottom: 1px solid #e9ecef;
+        flex-wrap: wrap;
+    }
+    
+    .search-filter-chip {
+        padding: 0.3rem 0.8rem;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+    
+    .search-filter-chip:hover {
+        background: #e9ecef;
+    }
+    
+    .search-filter-chip.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .search-ai-suggestions {
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, #e3f2fd, #f8f9fa);
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .search-ai-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1976d2;
+        margin-bottom: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .search-ai-suggestion {
+        background: white;
+        border: 1px solid #bbdefb;
+        border-radius: 8px;
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .search-ai-suggestion:hover {
+        background: #bbdefb;
+        transform: translateX(2px);
+    }
+    
+    .search-ai-suggestion:last-child {
+        margin-bottom: 0;
+    }
+    
+    .search-history {
+        padding: 1rem 1.5rem;
+    }
+    
+    .search-history-title {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.75rem;
+        display: flex;
+        justify-content: between;
+        align-items: center;
+    }
+    
+    .search-history-clear {
+        font-size: 0.75rem;
+        color: #007bff;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    
+    .search-history-clear:hover {
+        text-decoration: underline;
+    }
+    
+    .search-history-item {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.5rem 0;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .search-history-item:hover {
+        color: #007bff;
+    }
+    
+    .search-history-icon {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+    
+    .search-history-text {
+        flex: 1;
+        font-size: 0.9rem;
+    }
+    
+    .search-history-time {
+        font-size: 0.75rem;
+        color: #9e9e9e;
+    }
+    
+    .search-voice-btn {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #6c757d;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+    }
+    
+    .search-voice-btn:hover {
+        background: #f8f9fa;
+        color: #007bff;
+    }
+    
+    .search-voice-btn.listening {
+        color: #dc3545;
+        animation: pulse 1s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: translateY(-50%) scale(1); }
+        50% { transform: translateY(-50%) scale(1.1); }
+        100% { transform: translateY(-50%) scale(1); }
+    }
+    
+    .advanced-search-toggle {
+        position: absolute;
+        right: 4rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #6c757d;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 6px;
+        transition: all 0.2s ease;
+    }
+    
+    .advanced-search-toggle:hover {
+        background: #f8f9fa;
+        color: #007bff;
+    }
+    
+    @media (max-width: 768px) {
+        .smart-search-container {
+            max-width: 100%;
+        }
+        
+        .smart-search-results {
+            border-radius: 12px;
+            max-height: 60vh;
+        }
+        
+        .search-filters {
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+        
+        .search-result-item {
+            padding: 1rem;
+        }
+        
+        .advanced-search-toggle {
+            display: none;
+        }
+    }
+</style>
+
+<!-- Smart Search Component -->
+<div class="smart-search-container">
+    <div class="position-relative">
+        <i class="bi bi-search smart-search-icon"></i>
+        <input type="text" 
+               class="smart-search-input" 
+               id="smartSearchInput"
+               placeholder="🔍 Buscar máquinas, órdenes, documentos, usuarios..." 
+               autocomplete="off"
+               spellcheck="false">
+        
+        <button class="advanced-search-toggle" title="Búsqueda avanzada" onclick="toggleAdvancedSearch()">
+            <i class="bi bi-sliders"></i>
+        </button>
+        
+        <button class="search-voice-btn" title="Búsqueda por voz" onclick="toggleVoiceSearch()">
+            <i class="bi bi-mic"></i>
+        </button>
+    </div>
+    
+    <div class="smart-search-results" id="smartSearchResults">
+        <!-- Dynamic content will be loaded here -->
+    </div>
+</div>
+
+<script>
+class SmartSearchSystem {
+    constructor() {
+        this.input = document.getElementById('smartSearchInput');
+        this.results = document.getElementById('smartSearchResults');
+        this.currentIndex = -1;
+        this.searchTimeout = null;
+        this.minSearchLength = 2;
+        this.searchHistory = JSON.parse(localStorage.getItem('searchHistory') || '[]');
+        this.currentFilters = new Set(['all']);
+        this.isListening = false;
+        this.recognition = null;
+        
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.initializeVoiceSearch();
+        this.loadSearchHistory();
+    }
+    
+    setupEventListeners() {
+        // Input events
+        this.input.addEventListener('input', (e) => this.handleInput(e));
+        this.input.addEventListener('focus', () => this.handleFocus());
+        this.input.addEventListener('blur', (e) => this.handleBlur(e));
+        this.input.addEventListener('keydown', (e) => this.handleKeyDown(e));
+        
+        // Global click handler
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.smart-search-container')) {
+                this.hideResults();
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                this.focusSearch();
+            }
+            
+            if (e.key === 'Escape') {
+                this.hideResults();
+            }
+        });
+    }
+    
+    initializeVoiceSearch() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.recognition = new SpeechRecognition();
+            
+            this.recognition.continuous = false;
+            this.recognition.interimResults = false;
+            this.recognition.lang = 'es-ES';
+            
+            this.recognition.onstart = () => {
+                this.isListening = true;
+                document.querySelector('.search-voice-btn').classList.add('listening');
+            };
+            
+            this.recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                this.input.value = transcript;
+                this.handleInput({ target: { value: transcript } });
+            };
+            
+            this.recognition.onend = () => {
+                this.isListening = false;
+                document.querySelector('.search-voice-btn').classList.remove('listening');
+            };
+            
+            this.recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                this.isListening = false;
+                document.querySelector('.search-voice-btn').classList.remove('listening');
+            };
+        }
+    }
+    
+    handleInput(e) {
+        const query = e.target.value.trim();
+        
+        if (this.searchTimeout) {
+            clearTimeout(this.searchTimeout);
+        }
+        
+        if (query.length >= this.minSearchLength) {
+            this.searchTimeout = setTimeout(() => {
+                this.performSearch(query);
+            }, 300);
+        } else if (query.length === 0) {
+            this.showDefaultContent();
+        } else {
+            this.hideResults();
+        }
+    }
+    
+    handleFocus() {
+        if (this.input.value.length >= this.minSearchLength) {
+            this.performSearch(this.input.value);
+        } else {
+            this.showDefaultContent();
+        }
+    }
+    
+    handleBlur(e) {
+        // Don't hide if clicking on results
+        if (!e.relatedTarget || !e.relatedTarget.closest('.smart-search-results')) {
+            setTimeout(() => this.hideResults(), 150);
+        }
+    }
+    
+    handleKeyDown(e) {
+        const items = this.results.querySelectorAll('.search-result-item');
+        
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            this.currentIndex = Math.min(this.currentIndex + 1, items.length - 1);
+            this.updateSelection(items);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            this.currentIndex = Math.max(this.currentIndex - 1, -1);
+            this.updateSelection(items);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (this.currentIndex >= 0 && items[this.currentIndex]) {
+                this.selectResult(items[this.currentIndex]);
+            } else if (this.input.value.trim()) {
+                this.performGlobalSearch(this.input.value.trim());
+            }
+        }
+    }
+    
+    updateSelection(items) {
+        items.forEach((item, index) => {
+            item.classList.toggle('selected', index === this.currentIndex);
+        });
+        
+        if (this.currentIndex >= 0 && items[this.currentIndex]) {
+            items[this.currentIndex].scrollIntoView({ block: 'nearest' });
+        }
+    }
+    
+    async performSearch(query) {
+        this.showLoading();
+        
+        try {
+            // Simulate API call delay
+            await new Promise(resolve => setTimeout(resolve, 200));
+            
+            const results = await this.getSearchResults(query);
+            this.displayResults(results, query);
+            
+        } catch (error) {
+            console.error('Search error:', error);
+            this.showError('Error en la búsqueda');
+        }
+    }
+    
+    async getSearchResults(query) {
+        // This would be replaced with actual API calls
+        const mockResults = {
+            machines: [
+                {
+                    id: 1,
+                    code: 'TOR-001',
+                    name: 'Torno CNC Siemens 840D',
+                    status: 'operativa',
+                    location: 'Taller A'
+                },
+                {
+                    id: 2,
+                    code: 'FRE-002', 
+                    name: 'Fresadora Universal Huron',
+                    status: 'disponible',
+                    location: 'Taller B'
+                }
+            ],
+            orders: [
+                {
+                    id: 'OT2024-001',
+                    title: 'Mantenimiento preventivo TOR-001',
+                    status: 'pendiente',
+                    priority: 'alta'
+                }
+            ],
+            documents: [
+                {
+                    id: 1,
+                    title: 'Manual de Operación Siemens 840D',
+                    type: 'Manual',
+                    machine: 'TOR-001'
+                }
+            ],
+            users: [
+                {
+                    id: 1,
+                    name: 'Carlos Rodríguez',
+                    role: 'Instructor',
+                    email: 'carlos.rodriguez@sena.edu.co'
+                }
+            ]
+        };
+        
+        // Filter results based on query
+        const filteredResults = {};
+        const queryLower = query.toLowerCase();
+        
+        Object.keys(mockResults).forEach(category => {
+            filteredResults[category] = mockResults[category].filter(item => {
+                const searchText = JSON.stringify(item).toLowerCase();
+                return searchText.includes(queryLower);
+            });
+        });
+        
+        return filteredResults;
+    }
+    
+    displayResults(results, query) {
+        const hasResults = Object.values(results).some(arr => arr.length > 0);
+        
+        if (!hasResults) {
+            this.showEmpty(query);
+            return;
+        }
+        
+        let html = this.buildFiltersHTML();
+        
+        // Machines
+        if (results.machines && results.machines.length > 0) {
+            html += this.buildSectionHTML('Máquinas', 'bi-gear', results.machines.map(machine => ({
+                icon: { bg: 'linear-gradient(135deg, #667eea, #764ba2)', class: 'bi-gear' },
+                title: machine.code,
+                subtitle: machine.name,
+                badge: machine.status,
+                onclick: `viewMachine(${machine.id})`
+            })));
+        }
+        
+        // Work Orders
+        if (results.orders && results.orders.length > 0) {
+            html += this.buildSectionHTML('Órdenes de Trabajo', 'bi-clipboard-check', results.orders.map(order => ({
+                icon: { bg: 'linear-gradient(135deg, #ffc107, #fd7e14)', class: 'bi-clipboard-check' },
+                title: order.id,
+                subtitle: order.title,
+                badge: order.status,
+                onclick: `viewOrder('${order.id}')`
+            })));
+        }
+        
+        // Documents
+        if (results.documents && results.documents.length > 0) {
+            html += this.buildSectionHTML('Documentos', 'bi-file-text', results.documents.map(doc => ({
+                icon: { bg: 'linear-gradient(135deg, #17a2b8, #138496)', class: 'bi-file-text' },
+                title: doc.title,
+                subtitle: `${doc.type} - ${doc.machine}`,
+                badge: doc.type,
+                onclick: `viewDocument(${doc.id})`
+            })));
+        }
+        
+        // Users
+        if (results.users && results.users.length > 0) {
+            html += this.buildSectionHTML('Usuarios', 'bi-person', results.users.map(user => ({
+                icon: { bg: 'linear-gradient(135deg, #28a745, #20c997)', class: 'bi-person' },
+                title: user.name,
+                subtitle: `${user.role} - ${user.email}`,
+                badge: user.role,
+                onclick: `viewUser(${user.id})`
+            })));
+        }
+        
+        // AI Suggestions
+        html += this.buildAISuggestionsHTML(query);
+        
+        // Shortcuts
+        html += this.buildShortcutsHTML();
+        
+        this.results.innerHTML = html;
+        this.showResults();
+        this.currentIndex = -1;
+        
+        // Add search to history
+        this.addToHistory(query);
+    }
+    
+    buildFiltersHTML() {
+        const filters = [
+            { key: 'all', label: 'Todo', active: true },
+            { key: 'machines', label: 'Máquinas' },
+            { key: 'orders', label: 'Órdenes' },
+            { key: 'documents', label: 'Documentos' },
+            { key: 'users', label: 'Usuarios' }
+        ];
+        
+        return `
+            <div class="search-filters">
+                ${filters.map(filter => `
+                    <div class="search-filter-chip ${filter.active ? 'active' : ''}" 
+                         data-filter="${filter.key}" 
+                         onclick="smartSearch.toggleFilter('${filter.key}')">
+                        ${filter.label}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    buildSectionHTML(title, icon, items) {
+        return `
+            <div class="search-section">
+                <div class="search-section-title">
+                    <i class="bi ${icon}"></i>
+                    ${title}
+                </div>
+                ${items.map(item => `
+                    <div class="search-result-item" onclick="${item.onclick}">
+                        <div class="search-result-icon" style="background: ${item.icon.bg}">
+                            <i class="${item.icon.class}"></i>
+                        </div>
+                        <div class="search-result-content">
+                            <div class="search-result-title">${item.title}</div>
+                            <div class="search-result-subtitle">${item.subtitle}</div>
+                        </div>
+                        <span class="search-result-badge">${item.badge}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    buildAISuggestionsHTML(query) {
+        const suggestions = this.generateAISuggestions(query);
+        
+        if (suggestions.length === 0) return '';
+        
+        return `
+            <div class="search-ai-suggestions">
+                <div class="search-ai-title">
+                    <i class="bi bi-robot"></i>
+                    Sugerencias IA
+                </div>
+                ${suggestions.map(suggestion => `
+                    <div class="search-ai-suggestion" onclick="smartSearch.applySuggestion('${suggestion}')">
+                        ${suggestion}
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    buildShortcutsHTML() {
+        const shortcuts = [
+            { icon: 'bi-plus-circle', text: 'Nueva máquina', action: 'addMachine()' },
+            { icon: 'bi-clipboard-plus', text: 'Nueva orden', action: 'createOrder()' },
+            { icon: 'bi-cloud-upload', text: 'Subir documento', action: 'uploadDocument()' },
+            { icon: 'bi-robot', text: 'Consultar IA', action: 'openChat()' }
+        ];
+        
+        return `
+            <div class="search-shortcuts">
+                ${shortcuts.map(shortcut => `
+                    <a href="#" class="search-shortcut" onclick="${shortcut.action}; return false;">
+                        <i class="${shortcut.icon}"></i>
+                        ${shortcut.text}
+                    </a>
+                `).join('')}
+            </div>
+        `;
+    }
+    
+    generateAISuggestions(query) {
+        const suggestions = [
+            `¿Cómo realizar mantenimiento de "${query}"?`,
+            `Ver historial de "${query}"`,
+            `Buscar documentos relacionados con "${query}"`,
+            `Estado actual de "${query}"`
+        ];
+        
+        return suggestions.slice(0, 2); // Limit to 2 suggestions
+    }
+    
+    showDefaultContent() {
+        let html = '';
+        
+        // Search History
+        if (this.searchHistory.length > 0) {
+            html += `
+                <div class="search-history">
+                    <div class="search-history-title">
+                        <span><i class="bi bi-clock-history me-2"></i>Búsquedas recientes</span>
+                        <a href="#" class="search-history-clear" onclick="smartSearch.clearHistory()">Limpiar</a>
+                    </div>
+                    ${this.searchHistory.slice(0, 5).map(item => `
+                        <div class="search-history-item" onclick="smartSearch.selectHistory('${item.query}')">
+                            <i class="bi bi-search search-history-icon"></i>
+                            <span class="search-history-text">${item.query}</span>
+                            <span class="search-history-time">${this.getTimeAgo(item.timestamp)}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // Quick shortcuts
+        html += this.buildShortcutsHTML();
+        
+        this.results.innerHTML = html;
+        this.showResults();
+    }
+    
+    showLoading() {
+        this.results.innerHTML = `
+            <div class="search-loading">
+                <div class="search-loading-spinner"></div>
+                Buscando...
+            </div>
+        `;
+        this.showResults();
+    }
+    
+    showEmpty(query) {
+        this.results.innerHTML = `
+            <div class="search-empty">
+                <div class="search-empty-icon">
+                    <i class="bi bi-search"></i>
+                </div>
+                <h6>No se encontraron resultados</h6>
+                <p>No hay resultados para "<strong>${query}</strong>"</p>
+                <p><small>Intenta con otros términos o usa la búsqueda por voz</small></p>
+            </div>
+            ${this.buildShortcutsHTML()}
+        `;
+        this.showResults();
+    }
+    
+    showError(message) {
+        this.results.innerHTML = `
+            <div class="search-empty">
+                <div class="search-empty-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <h6>Error en la búsqueda</h6>
+                <p>${message}</p>
+            </div>
+        `;
+        this.showResults();
+    }
+    
+    showResults() {
+        this.results.classList.add('show');
+    }
+    
+    hideResults() {
+        this.results.classList.remove('show');
+        this.currentIndex = -1;
+    }
+    
+    focusSearch() {
+        this.input.focus();
+        this.input.select();
+    }
+    
+    selectResult(element) {
+        const onclick = element.getAttribute('onclick');
+        if (onclick) {
+            eval(onclick);
+        }
+        this.hideResults();
+    }
+    
+    toggleFilter(filter) {
+        const filterElement = this.results.querySelector(`[data-filter="${filter}"]`);
+        const isActive = filterElement.classList.contains('active');
+        
+        // Remove active from all filters
+        this.results.querySelectorAll('.search-filter-chip').forEach(chip => {
+            chip.classList.remove('active');
+        });
+        
+        if (!isActive) {
+            filterElement.classList.add('active');
+            this.currentFilters = new Set([filter]);
+        } else {
+            this.results.querySelector('[data-filter="all"]').classList.add('active');
+            this.currentFilters = new Set(['all']);
+        }
+        
+        // Re-filter results
+        this.filterResults();
+    }
+    
+    filterResults() {
+        const sections = this.results.querySelectorAll('.search-section');
+        
+        sections.forEach(section => {
+            const title = section.querySelector('.search-section-title').textContent.toLowerCase();
+            const shouldShow = this.currentFilters.has('all') || 
+                             this.currentFilters.has('machines') && title.includes('máquinas') ||
+                             this.currentFilters.has('orders') && title.includes('órdenes') ||
+                             this.currentFilters.has('documents') && title.includes('documentos') ||
+                             this.currentFilters.has('users') && title.includes('usuarios');
+            
+            section.style.display = shouldShow ? 'block' : 'none';
+        });
+    }
+    
+    applySuggestion(suggestion) {
+        this.input.value = suggestion;
+        this.performSearch(suggestion);
+    }
+    
+    addToHistory(query) {
+        const existingIndex = this.searchHistory.findIndex(item => item.query === query);
+        
+        if (existingIndex >= 0) {
+            this.searchHistory.splice(existingIndex, 1);
+        }
+        
+        this.searchHistory.unshift({
+            query: query,
+            timestamp: new Date()
+        });
+        
+        // Keep only last 10 searches
+        this.searchHistory = this.searchHistory.slice(0, 10);
+        
+        // Save to localStorage
+        localStorage.setItem('searchHistory', JSON.stringify(this.searchHistory));
+    }
+    
+    selectHistory(query) {
+        this.input.value = query;
+        this.performSearch(query);
+    }
+    
+    clearHistory() {
+        this.searchHistory = [];
+        localStorage.removeItem('searchHistory');
+        this.showDefaultContent();
+    }
+    
+    loadSearchHistory() {
+        // Search history is already loaded in constructor
+    }
+    
+    performGlobalSearch(query) {
+        // Redirect to global search results page
+        window.location.href = `/search/?q=${encodeURIComponent(query)}`;
+    }
+    
+    getTimeAgo(timestamp) {
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diffMs = now - time;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffMins < 1) return 'Ahora';
+        if (diffMins < 60) return `${diffMins}m`;
+        if (diffHours < 24) return `${diffHours}h`;
+        return `${diffDays}d`;
+    }
+}
+
+// Initialize smart search
+const smartSearch = new SmartSearchSystem();
+
+// Global functions for search actions
+function toggleVoiceSearch() {
+    if (smartSearch.recognition) {
+        if (smartSearch.isListening) {
+            smartSearch.recognition.stop();
+        } else {
+            smartSearch.recognition.start();
+        }
+    } else {
+        alert('Búsqueda por voz no disponible en este navegador');
+    }
+}
+
+function toggleAdvancedSearch() {
+    // Implementation for advanced search modal
+    alert('Búsqueda avanzada - Próximamente');
+}
+
+// Action functions (these would be implemented in your Django views)
+function viewMachine(id) {
+    window.location.href = `/maquinaria/${id}/`;
+}
+
+function viewOrder(id) {
+    window.location.href = `/mantenimiento/ordenes/${id}/`;
+}
+
+function viewDocument(id) {
+    window.location.href = `/documentos/manuales/${id}/`;
+}
+
+function viewUser(id) {
+    window.location.href = `/usuarios/${id}/`;
+}
+
+function addMachine() {
+    window.location.href = '/maquinaria/crear/';
+}
+
+function createOrder() {
+    window.location.href = '/mantenimiento/ordenes/crear/';
+}
+
+function uploadDocument() {
+    window.location.href = '/documentos/subir/';
+}
+
+function openChat() {
+    window.location.href = '/ia/';
+}
+
+// Keyboard shortcut indicator
+document.addEventListener('DOMContentLoaded', function() {
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const shortcut = isMac ? '⌘K' : 'Ctrl+K';
+    
+    const placeholder = document.querySelector('.smart-search-input').placeholder;
+    document.querySelector('.smart-search-input').placeholder = placeholder + ` (${shortcut})`;
+});
+</script>

@@ -1,0 +1,1432 @@
+<!-- templates/components/help_system.html -->
+<style>
+    /* Sistema de Ayuda Contextual */
+    .help-system {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.8);
+        z-index: 2000;
+        display: none;
+        backdrop-filter: blur(4px);
+    }
+    
+    .help-overlay {
+        position: absolute;
+        background: rgba(0,0,0,0.8);
+        border-radius: 8px;
+        pointer-events: none;
+        transition: all 0.3s ease;
+    }
+    
+    .help-spotlight {
+        position: absolute;
+        border: 3px solid #007bff;
+        border-radius: 8px;
+        box-shadow: 0 0 0 9999px rgba(0,0,0,0.8);
+        transition: all 0.3s ease;
+        pointer-events: none;
+    }
+    
+    .help-tooltip {
+        position: absolute;
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        max-width: 320px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        z-index: 2001;
+        transform: scale(0.8);
+        opacity: 0;
+        transition: all 0.3s ease;
+    }
+    
+    .help-tooltip.show {
+        transform: scale(1);
+        opacity: 1;
+    }
+    
+    .help-tooltip::before {
+        content: '';
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 10px 10px 0 10px;
+        border-color: white transparent transparent transparent;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .help-tooltip.top::before {
+        border-width: 0 10px 10px 10px;
+        border-color: transparent transparent white transparent;
+        bottom: auto;
+        top: -10px;
+    }
+    
+    .help-tooltip.left::before {
+        border-width: 10px 0 10px 10px;
+        border-color: transparent transparent transparent white;
+        bottom: auto;
+        left: auto;
+        right: -10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    .help-tooltip.right::before {
+        border-width: 10px 10px 10px 0;
+        border-color: transparent white transparent transparent;
+        bottom: auto;
+        left: -10px;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    
+    .help-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+    
+    .help-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+    
+    .help-title {
+        font-weight: 600;
+        color: #212529;
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    
+    .help-content {
+        color: #495057;
+        line-height: 1.5;
+        margin-bottom: 1.5rem;
+    }
+    
+    .help-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .help-progress {
+        display: flex;
+        gap: 0.25rem;
+        align-items: center;
+    }
+    
+    .help-progress-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #dee2e6;
+        transition: all 0.2s ease;
+    }
+    
+    .help-progress-dot.active {
+        background: #007bff;
+        transform: scale(1.2);
+    }
+    
+    .help-controls {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .help-btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+    
+    .help-btn-primary {
+        background: #007bff;
+        color: white;
+    }
+    
+    .help-btn-primary:hover {
+        background: #0056b3;
+    }
+    
+    .help-btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+    
+    .help-btn-secondary:hover {
+        background: #545b62;
+    }
+    
+    .help-btn-outline {
+        background: transparent;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+    }
+    
+    .help-btn-outline:hover {
+        background: #f8f9fa;
+    }
+    
+    /* Help Button */
+    .help-trigger {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+        border: none;
+        font-size: 1.3rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(40,167,69,0.3);
+        z-index: 1050;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .help-trigger:hover {
+        transform: scale(1.1);
+        box-shadow: 0 6px 20px rgba(40,167,69,0.4);
+    }
+    
+    .help-trigger.pulse {
+        animation: helpPulse 2s infinite;
+    }
+    
+    @keyframes helpPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Help Panel */
+    .help-panel {
+        position: fixed;
+        top: 0;
+        right: -400px;
+        width: 400px;
+        height: 100vh;
+        background: white;
+        box-shadow: -4px 0 20px rgba(0,0,0,0.1);
+        z-index: 1060;
+        transition: right 0.3s ease;
+        overflow-y: auto;
+    }
+    
+    .help-panel.show {
+        right: 0;
+    }
+    
+    .help-panel-header {
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .help-panel-title {
+        font-weight: 600;
+        margin: 0;
+    }
+    
+    .help-panel-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 1.2rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+    
+    .help-panel-close:hover {
+        background: rgba(255,255,255,0.1);
+    }
+    
+    .help-panel-body {
+        padding: 1.5rem;
+    }
+    
+    .help-search {
+        width: 100%;
+        padding: 0.75rem;
+        border: 2px solid #e9ecef;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+        transition: all 0.2s ease;
+    }
+    
+    .help-search:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+    
+    .help-categories {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .help-category {
+        margin-bottom: 1rem;
+    }
+    
+    .help-category-title {
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 6px;
+        transition: background 0.2s ease;
+    }
+    
+    .help-category-title:hover {
+        background: #f8f9fa;
+    }
+    
+    .help-category-icon {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .help-category-items {
+        list-style: none;
+        padding-left: 2.5rem;
+        margin: 0;
+    }
+    
+    .help-category-item {
+        margin-bottom: 0.5rem;
+    }
+    
+    .help-category-link {
+        color: #007bff;
+        text-decoration: none;
+        font-size: 0.9rem;
+        display: block;
+        padding: 0.25rem 0;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+    }
+    
+    .help-category-link:hover {
+        background: rgba(0,123,255,0.1);
+        text-decoration: none;
+        color: #0056b3;
+    }
+    
+    /* Tutorial System */
+    .tutorial-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0,0,0,0.9);
+        z-index: 2500;
+        display: none;
+        backdrop-filter: blur(4px);
+    }
+    
+    .tutorial-content {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        border-radius: 16px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    
+    .tutorial-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .tutorial-logo {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #007bff, #0056b3);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 1rem;
+    }
+    
+    .tutorial-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 0.5rem;
+    }
+    
+    .tutorial-subtitle {
+        color: #6c757d;
+        margin: 0;
+    }
+    
+    .tutorial-step {
+        display: none;
+        text-align: center;
+    }
+    
+    .tutorial-step.active {
+        display: block;
+        animation: fadeInStep 0.5s ease;
+    }
+    
+    @keyframes fadeInStep {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .tutorial-step-icon {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: #007bff;
+        margin: 0 auto 1.5rem;
+    }
+    
+    .tutorial-step-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #212529;
+        margin-bottom: 1rem;
+    }
+    
+    .tutorial-step-content {
+        color: #495057;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+    
+    .tutorial-navigation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e9ecef;
+    }
+    
+    .tutorial-progress {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .tutorial-progress-step {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #dee2e6;
+        transition: all 0.3s ease;
+    }
+    
+    .tutorial-progress-step.active {
+        background: #007bff;
+        transform: scale(1.2);
+    }
+    
+    .tutorial-progress-step.completed {
+        background: #28a745;
+    }
+    
+    /* Contextual Help Hints */
+    .help-hint {
+        position: absolute;
+        background: #007bff;
+        color: white;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.8rem;
+        cursor: pointer;
+        z-index: 1000;
+        animation: helpHintPulse 2s infinite;
+        box-shadow: 0 2px 8px rgba(0,123,255,0.3);
+    }
+    
+    @keyframes helpHintPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.2); }
+    }
+    
+    .help-hint:hover {
+        animation: none;
+        transform: scale(1.1);
+    }
+    
+    /* Quick Help */
+    .quick-help {
+        position: fixed;
+        bottom: 80px;
+        right: 20px;
+        background: white;
+        border-radius: 12px;
+        padding: 1rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        max-width: 280px;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.3s ease;
+        z-index: 1040;
+        border: 1px solid #e9ecef;
+    }
+    
+    .quick-help.show {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    .quick-help-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+    }
+    
+    .quick-help-title {
+        font-weight: 600;
+        color: #212529;
+        margin: 0;
+        font-size: 0.9rem;
+    }
+    
+    .quick-help-close {
+        background: none;
+        border: none;
+        color: #6c757d;
+        font-size: 1rem;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+    
+    .quick-help-close:hover {
+        background: #f8f9fa;
+    }
+    
+    .quick-help-content {
+        color: #495057;
+        font-size: 0.85rem;
+        line-height: 1.4;
+        margin-bottom: 0.75rem;
+    }
+    
+    .quick-help-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+    
+    .quick-help-btn {
+        padding: 0.375rem 0.75rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 500;
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .help-panel {
+            width: 100%;
+            right: -100%;
+        }
+        
+        .help-tooltip {
+            max-width: 280px;
+            padding: 1rem;
+        }
+        
+        .tutorial-content {
+            padding: 1.5rem;
+            width: 95%;
+        }
+        
+        .help-trigger {
+            bottom: 80px;
+        }
+    }
+</style>
+
+<!-- Help System Container -->
+<div class="help-system" id="helpSystem"></div>
+
+<!-- Help Trigger Button -->
+<button class="help-trigger" id="helpTrigger" onclick="toggleHelpPanel()" title="Ayuda">
+    <i class="bi bi-question"></i>
+</button>
+
+<!-- Help Panel -->
+<div class="help-panel" id="helpPanel">
+    <div class="help-panel-header">
+        <h5 class="help-panel-title">📚 Centro de Ayuda</h5>
+        <button class="help-panel-close" onclick="closeHelpPanel()">
+            <i class="bi bi-x"></i>
+        </button>
+    </div>
+    
+    <div class="help-panel-body">
+        <input type="text" class="help-search" placeholder="🔍 Buscar ayuda..." id="helpSearchInput">
+        
+        <ul class="help-categories">
+            <li class="help-category">
+                <div class="help-category-title" onclick="toggleCategory('getting-started')">
+                    <div class="help-category-icon">🚀</div>
+                    <span>Primeros Pasos</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </div>
+                <ul class="help-category-items" id="getting-started">
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="startTutorial('onboarding')">
+                            Configuración inicial del sistema
+                        </a>
+                    </li>
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="startTutorial('first-machine')">
+                            Registrar mi primera máquina
+                        </a>
+                    </li>
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="showQuickHelp('dashboard')">
+                            Entender el dashboard principal
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            
+            <li class="help-category">
+                <div class="help-category-title" onclick="toggleCategory('machines')">
+                    <div class="help-category-icon">⚙️</div>
+                    <span>Gestión de Máquinas</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </div>
+                <ul class="help-category-items" id="machines">
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="startTutorial('add-machine')">
+                            Cómo agregar una nueva máquina
+                        </a>
+                    </li>
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="showQuickHelp('machine-states')">
+                            Estados de las máquinas
+                        </a>
+                    </li>
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="showQuickHelp('machine-usage')">
+                            Iniciar y finalizar uso
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            
+            <li class="help-category">
+                <div class="help-category-title" onclick="toggleCategory('maintenance')">
+                    <div class="help-category-icon">🔧</div>
+                    <span>Mantenimiento</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </div>
+                <ul class="help-category-items" id="maintenance">
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="startTutorial('maintenance-order')">
+                            Crear orden de mantenimiento
+                        </a>
+                    </li>
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="showQuickHelp('alerts')">
+                            Entender las alertas
+                        </a>
+                    </li>
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="showQuickHelp('calendar')">
+                            Usar el calendario de mantenimiento
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            
+            <li class="help-category">
+                <div class="help-category-title" onclick="toggleCategory('documents')">
+                    <div class="help-category-icon">📁</div>
+                    <span>Documentos y Manuales</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </div>
+                <ul class="help-category-items" id="documents">
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="startTutorial('upload-manual')">
+                            Subir manuales técnicos
+                        </a>
+                    </li>
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="showQuickHelp('search-docs')">
+                            Buscar en documentos
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            
+            <li class="help-category">
+                <div class="help-category-title" onclick="toggleCategory('ai-assistant')">
+                    <div class="help-category-icon">🤖</div>
+                    <span>Asistente IA</span>
+                    <i class="bi bi-chevron-down ms-auto"></i>
+                </div>
+                <ul class="help-category-items" id="ai-assistant">
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="startTutorial('chat-ia')">
+                            Cómo usar el chat IA
+                        </a>
+                    </li>
+                    <li class="help-category-item">
+                        <a href="#" class="help-category-link" onclick="showQuickHelp('ia-tips')">
+                            Consejos para mejores consultas
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+        
+        <div class="mt-4 pt-3 border-top">
+            <button class="btn btn-primary w-100 mb-2" onclick="startTutorial('complete-tour')">
+                <i class="bi bi-play-circle me-2"></i>Tour Completo del Sistema
+            </button>
+            <button class="btn btn-outline-secondary w-100" onclick="resetTutorials()">
+                <i class="bi bi-arrow-clockwise me-2"></i>Reiniciar Tutoriales
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tutorial Container -->
+<div class="tutorial-container" id="tutorialContainer">
+    <div class="tutorial-content">
+        <div class="tutorial-header">
+            <div class="tutorial-logo">
+                <i class="bi bi-mortarboard"></i>
+            </div>
+            <h3 class="tutorial-title" id="tutorialTitle">Tutorial del Sistema</h3>
+            <p class="tutorial-subtitle" id="tutorialSubtitle">Aprende a usar el sistema paso a paso</p>
+        </div>
+        
+        <div class="tutorial-steps" id="tutorialSteps">
+            <!-- Steps will be loaded dynamically -->
+        </div>
+        
+        <div class="tutorial-navigation">
+            <div class="tutorial-progress" id="tutorialProgress">
+                <!-- Progress dots will be generated -->
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button class="help-btn help-btn-outline" onclick="skipTutorial()">Saltar</button>
+                <button class="help-btn help-btn-secondary" id="tutorialPrevBtn" onclick="prevTutorialStep()" style="display: none;">
+                    Anterior
+                </button>
+                <button class="help-btn help-btn-primary" id="tutorialNextBtn" onclick="nextTutorialStep()">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Help Popup -->
+<div class="quick-help" id="quickHelp">
+    <div class="quick-help-header">
+        <h6 class="quick-help-title" id="quickHelpTitle">Ayuda Rápida</h6>
+        <button class="quick-help-close" onclick="closeQuickHelp()">
+            <i class="bi bi-x"></i>
+        </button>
+    </div>
+    <div class="quick-help-content" id="quickHelpContent">
+        <!-- Content will be loaded dynamically -->
+    </div>
+    <div class="quick-help-actions">
+        <button class="quick-help-btn btn-primary" onclick="closeQuickHelp()">Entendido</button>
+        <button class="quick-help-btn btn-outline" onclick="startRelatedTutorial()">Ver Tutorial</button>
+    </div>
+</div>
+
+<script>
+class HelpSystem {
+    constructor() {
+        this.currentTutorial = null;
+        this.currentStep = 0;
+        this.tutorialData = {};
+        this.helpData = {};
+        this.userProgress = {};
+        
+        this.init();
+    }
+    
+    init() {
+        this.loadTutorialData();
+        this.loadHelpData();
+        this.loadUserProgress();
+        this.setupEventListeners();
+        this.checkFirstVisit();
+    }
+    
+    loadTutorialData() {
+        this.tutorialData = {
+            'onboarding': {
+                title: 'Bienvenido al Sistema SENA',
+                subtitle: 'Configuremos tu experiencia inicial',
+                steps: [
+                    {
+                        icon: 'bi-house',
+                        title: '¡Bienvenido!',
+                        content: 'Este es el Sistema de Control y Seguimiento de Maquinaria Especializada del SENA. Te ayudaremos a configurar todo paso a paso.'
+                    },
+                    {
+                        icon: 'bi-person-gear',
+                        title: 'Configura tu Perfil',
+                        content: 'Primero, vamos a completar tu información de perfil para personalizar tu experiencia.',
+                        action: () => this.highlightElement('.user-profile')
+                    },
+                    {
+                        icon: 'bi-gear',
+                        title: 'Dashboard Principal',
+                        content: 'Este es tu dashboard principal donde verás el resumen de todas las máquinas y actividades.',
+                        action: () => this.highlightElement('.dashboard-metrics')
+                    },
+                    {
+                        icon: 'bi-check-circle',
+                        title: '¡Todo Listo!',
+                        content: 'Ya tienes todo configurado. Puedes comenzar a registrar máquinas y gestionar el mantenimiento.'
+                    }
+                ]
+            },
+            
+            'first-machine': {
+                title: 'Registrar Primera Máquina',
+                subtitle: 'Aprende a agregar máquinas al inventario',
+                steps: [
+                    {
+                        icon: 'bi-plus-circle',
+                        title: 'Botón de Nueva Máquina',
+                        content: 'Haz clic en el botón "Nueva Máquina" para comenzar el registro.',
+                        action: () => this.highlightElement('[href*="crear_maquina"]')
+                    },
+                    {
+                        icon: 'bi-form',
+                        title: 'Formulario de Registro',
+                        content: 'Completa la información básica: código de inventario, nombre, marca y modelo.',
+                        action: () => this.highlightElement('.wizard-form')
+                    },
+                    {
+                        icon: 'bi-upload',
+                        title: 'Agregar Imagen',
+                        content: 'Opcionalmente, puedes subir una foto de la máquina para identificarla fácilmente.',
+                        action: () => this.highlightElement('.file-upload-zone')
+                    },
+                    {
+                        icon: 'bi-check',
+                        title: 'Guardar Máquina',
+                        content: 'Revisa la información y guarda tu primera máquina en el sistema.'
+                    }
+                ]
+            },
+            
+            'maintenance-order': {
+                title: 'Crear Orden de Mantenimiento',
+                subtitle: 'Gestiona el mantenimiento de tus máquinas',
+                steps: [
+                    {
+                        icon: 'bi-clipboard-plus',
+                        title: 'Nueva Orden',
+                        content: 'Ve a la sección de Mantenimiento y haz clic en "Nueva Orden".',
+                        action: () => this.highlightElement('[href*="crear_orden"]')
+                    },
+                    {
+                        icon: 'bi-gear',
+                        title: 'Seleccionar Máquina',
+                        content: 'Elige la máquina que necesita mantenimiento y el tipo de orden.',
+                        action: () => this.highlightElement('[name="maquina"]')
+                    },
+                    {
+                        icon: 'bi-calendar',
+                        title: 'Programar Fecha',
+                        content: 'Establece la fecha y prioridad del mantenimiento.',
+                        action: () => this.highlightElement('[name="fecha_programada"]')
+                    },
+                    {
+                        icon: 'bi-person-check',
+                        title: 'Asignar Responsable',
+                        content: 'Asigna un técnico responsable o proveedor externo.',
+                        action: () => this.highlightElement('[name="asignado_a"]')
+                    }
+                ]
+            },
+            
+            'chat-ia': {
+                title: 'Usar el Asistente IA',
+                subtitle: 'Obtén ayuda inteligente sobre tus máquinas',
+                steps: [
+                    {
+                        icon: 'bi-robot',
+                        title: 'Acceder al Chat',
+                        content: 'Ve a la sección del Asistente IA para comenzar una conversación.',
+                        action: () => this.highlightElement('[href*="chat_interface"]')
+                    },
+                    {
+                        icon: 'bi-chat-text',
+                        title: 'Hacer Preguntas',
+                        content: 'Puedes preguntar sobre procedimientos, mantenimiento, o problemas específicos.',
+                        action: () => this.highlightElement('.chat-input')
+                    },
+                    {
+                        icon: 'bi-book',
+                        title: 'Consulta Manuales',
+                        content: 'El IA puede buscar información en los manuales técnicos automáticamente.',
+                        action: () => this.highlightElement('.message-sources')
+                    },
+                    {
+                        icon: 'bi-heart',
+                        title: 'Dar Feedback',
+                        content: 'Usa los botones de "útil" o "no útil" para mejorar las respuestas.'
+                    }
+                ]
+            }
+        };
+    }
+    
+    loadHelpData() {
+        this.helpData = {
+            'dashboard': {
+                title: 'Entender el Dashboard',
+                content: 'El dashboard muestra métricas clave como total de máquinas, operativas, en mantenimiento y alertas activas. Los gráficos te ayudan a visualizar el estado general del inventario.'
+            },
+            'machine-states': {
+                title: 'Estados de Máquinas',
+                content: 'Las máquinas pueden estar en diferentes estados:\n• Disponible: Lista para usar\n• Operativa: En uso actualmente\n• Mantenimiento: Requiere mantenimiento\n• Fuera de Servicio: No operativa'
+            },
+            'alerts': {
+                title: 'Sistema de Alertas',
+                content: 'Las alertas te notifican sobre:\n• Mantenimientos vencidos\n• Mantenimientos próximos\n• Componentes críticos\n• Pólizas por vencer\n\nPuedes ver todas las alertas en el centro de mantenimiento.'
+            },
+            'ia-tips': {
+                title: 'Consejos para el IA',
+                content: 'Para obtener mejores respuestas:\n• Sé específico en tus preguntas\n• Menciona el código de la máquina\n• Describe el problema claramente\n• Usa términos técnicos cuando sea posible'
+            }
+        };
+    }
+    
+    loadUserProgress() {
+        const stored = localStorage.getItem('sena_help_progress');
+        this.userProgress = stored ? JSON.parse(stored) : {
+            completedTutorials: [],
+            firstVisit: true,
+            helpShown: []
+        };
+    }
+    
+    saveUserProgress() {
+        localStorage.setItem('sena_help_progress', JSON.stringify(this.userProgress));
+    }
+    
+    setupEventListeners() {
+        // Search functionality
+        document.getElementById('helpSearchInput').addEventListener('input', (e) => {
+            this.searchHelp(e.target.value);
+        });
+        
+        // Close help panel when clicking outside
+        document.addEventListener('click', (e) => {
+            const panel = document.getElementById('helpPanel');
+            const trigger = document.getElementById('helpTrigger');
+            
+            if (!panel.contains(e.target) && !trigger.contains(e.target)) {
+                this.closeHelpPanel();
+            }
+        });
+    }
+    
+    checkFirstVisit() {
+        if (this.userProgress.firstVisit) {
+            setTimeout(() => {
+                this.showWelcomeTutorial();
+            }, 2000);
+        }
+        
+        // Show contextual help hints
+        this.addContextualHints();
+    }
+    
+    showWelcomeTutorial() {
+        const helpTrigger = document.getElementById('helpTrigger');
+        helpTrigger.classList.add('pulse');
+        
+        this.showQuickHelp('welcome', {
+            title: '¡Bienvenido al Sistema SENA!',
+            content: '¿Es tu primera vez aquí? Te recomendamos hacer el tour guiado para conocer todas las funcionalidades.',
+            actions: [
+                { text: 'Hacer Tour', action: () => this.startTutorial('onboarding') },
+                { text: 'Explorar Solo', action: () => this.markFirstVisitComplete() }
+            ]
+        });
+    }
+    
+    markFirstVisitComplete() {
+        this.userProgress.firstVisit = false;
+        this.saveUserProgress();
+        document.getElementById('helpTrigger').classList.remove('pulse');
+    }
+    
+    addContextualHints() {
+        // Add help hints to key elements
+        const hintElements = [
+            { selector: '.metric-card', content: 'Métricas del sistema' },
+            { selector: '.quick-action-card', content: 'Acciones rápidas' },
+            { selector: '.machine-card', content: 'Información de máquina' }
+        ];
+        
+        hintElements.forEach(hint => {
+            const elements = document.querySelectorAll(hint.selector);
+            elements.forEach((element, index) => {
+                if (index === 0) { // Only add hint to first element
+                    this.addHelpHint(element, hint.content);
+                }
+            });
+        });
+    }
+    
+    addHelpHint(element, content) {
+        const hint = document.createElement('div');
+        hint.className = 'help-hint';
+        hint.innerHTML = '<i class="bi bi-question"></i>';
+        hint.title = content;
+        
+        element.style.position = 'relative';
+        element.appendChild(hint);
+        
+        hint.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.showContextualHelp(element, content);
+        });
+    }
+    
+    showContextualHelp(element, content) {
+        this.createTooltip(element, {
+            title: 'Ayuda',
+            content: content,
+            position: 'top'
+        });
+    }
+    
+    startTutorial(tutorialName) {
+        const tutorial = this.tutorialData[tutorialName];
+        if (!tutorial) return;
+        
+        this.currentTutorial = tutorialName;
+        this.currentStep = 0;
+        
+        document.getElementById('tutorialTitle').textContent = tutorial.title;
+        document.getElementById('tutorialSubtitle').textContent = tutorial.subtitle;
+        
+        this.renderTutorialSteps(tutorial.steps);
+        this.showTutorialContainer();
+        this.updateTutorialProgress();
+        
+        // Close help panel
+        this.closeHelpPanel();
+    }
+    
+    renderTutorialSteps(steps) {
+        const container = document.getElementById('tutorialSteps');
+        container.innerHTML = '';
+        
+        steps.forEach((step, index) => {
+            const stepElement = document.createElement('div');
+            stepElement.className = `tutorial-step ${index === 0 ? 'active' : ''}`;
+            stepElement.innerHTML = `
+                <div class="tutorial-step-icon">
+                    <i class="${step.icon}"></i>
+                </div>
+                <h4 class="tutorial-step-title">${step.title}</h4>
+                <div class="tutorial-step-content">${step.content}</div>
+            `;
+            container.appendChild(stepElement);
+        });
+        
+        // Generate progress dots
+        const progressContainer = document.getElementById('tutorialProgress');
+        progressContainer.innerHTML = '';
+        
+        steps.forEach((_, index) => {
+            const dot = document.createElement('div');
+            dot.className = `tutorial-progress-step ${index === 0 ? 'active' : ''}`;
+            progressContainer.appendChild(dot);
+        });
+    }
+    
+    nextTutorialStep() {
+        const tutorial = this.tutorialData[this.currentTutorial];
+        if (!tutorial) return;
+        
+        if (this.currentStep < tutorial.steps.length - 1) {
+            this.currentStep++;
+            this.updateTutorialStep();
+        } else {
+            this.completeTutorial();
+        }
+    }
+    
+    prevTutorialStep() {
+        if (this.currentStep > 0) {
+            this.currentStep--;
+            this.updateTutorialStep();
+        }
+    }
+    
+    updateTutorialStep() {
+        const tutorial = this.tutorialData[this.currentTutorial];
+        const steps = document.querySelectorAll('.tutorial-step');
+        const progressDots = document.querySelectorAll('.tutorial-progress-step');
+        
+        // Update step visibility
+        steps.forEach((step, index) => {
+            step.classList.toggle('active', index === this.currentStep);
+        });
+        
+        // Update progress
+        progressDots.forEach((dot, index) => {
+            dot.classList.remove('active', 'completed');
+            if (index < this.currentStep) {
+                dot.classList.add('completed');
+            } else if (index === this.currentStep) {
+                dot.classList.add('active');
+            }
+        });
+        
+        // Update navigation buttons
+        const prevBtn = document.getElementById('tutorialPrevBtn');
+        const nextBtn = document.getElementById('tutorialNextBtn');
+        
+        prevBtn.style.display = this.currentStep > 0 ? 'block' : 'none';
+        nextBtn.textContent = this.currentStep === tutorial.steps.length - 1 ? 'Finalizar' : 'Siguiente';
+        
+        // Execute step action
+        const currentStepData = tutorial.steps[this.currentStep];
+        if (currentStepData.action) {
+            setTimeout(currentStepData.action, 500);
+        }
+        
+        this.updateTutorialProgress();
+    }
+    
+    updateTutorialProgress() {
+        // Additional progress tracking logic
+    }
+    
+    completeTutorial() {
+        if (!this.userProgress.completedTutorials.includes(this.currentTutorial)) {
+            this.userProgress.completedTutorials.push(this.currentTutorial);
+            this.saveUserProgress();
+        }
+        
+        this.hideTutorialContainer();
+        this.clearHighlights();
+        
+        // Show completion message
+        if (typeof showSuccess !== 'undefined') {
+            showSuccess('Tutorial Completado', '¡Has terminado el tutorial exitosamente!');
+        }
+        
+        this.markFirstVisitComplete();
+    }
+    
+    skipTutorial() {
+        if (confirm('¿Estás seguro de que quieres saltar este tutorial?')) {
+            this.hideTutorialContainer();
+            this.clearHighlights();
+            this.markFirstVisitComplete();
+        }
+    }
+    
+    showTutorialContainer() {
+        document.getElementById('tutorialContainer').style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    }
+    
+    hideTutorialContainer() {
+        document.getElementById('tutorialContainer').style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    
+    highlightElement(selector) {
+        this.clearHighlights();
+        
+        const element = document.querySelector(selector);
+        if (!element) return;
+        
+        const rect = element.getBoundingClientRect();
+        const spotlight = document.createElement('div');
+        spotlight.className = 'help-spotlight';
+        spotlight.style.left = rect.left + 'px';
+        spotlight.style.top = rect.top + 'px';
+        spotlight.style.width = rect.width + 'px';
+        spotlight.style.height = rect.height + 'px';
+        
+        document.getElementById('helpSystem').appendChild(spotlight);
+        document.getElementById('helpSystem').style.display = 'block';
+        
+        // Scroll element into view
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    clearHighlights() {
+        document.getElementById('helpSystem').style.display = 'none';
+        document.getElementById('helpSystem').innerHTML = '';
+    }
+    
+    showQuickHelp(helpKey, customData = null) {
+        const helpPopup = document.getElementById('quickHelp');
+        const data = customData || this.helpData[helpKey];
+        
+        if (!data) return;
+        
+        document.getElementById('quickHelpTitle').textContent = data.title;
+        document.getElementById('quickHelpContent').innerHTML = data.content.replace(/\n/g, '<br>');
+        
+        helpPopup.classList.add('show');
+        
+        // Auto-hide after 10 seconds
+        setTimeout(() => {
+            this.closeQuickHelp();
+        }, 10000);
+    }
+    
+    closeQuickHelp() {
+        document.getElementById('quickHelp').classList.remove('show');
+    }
+    
+    toggleHelpPanel() {
+        const panel = document.getElementById('helpPanel');
+        panel.classList.toggle('show');
+    }
+    
+    closeHelpPanel() {
+        document.getElementById('helpPanel').classList.remove('show');
+    }
+    
+    toggleCategory(categoryId) {
+        const category = document.getElementById(categoryId);
+        const icon = category.previousElementSibling.querySelector('.bi-chevron-down');
+        
+        if (category.style.display === 'none' || !category.style.display) {
+            category.style.display = 'block';
+            icon.style.transform = 'rotate(180deg)';
+        } else {
+            category.style.display = 'none';
+            icon.style.transform = 'rotate(0deg)';
+        }
+    }
+    
+    searchHelp(query) {
+        const categories = document.querySelectorAll('.help-category');
+        
+        if (!query.trim()) {
+            categories.forEach(cat => cat.style.display = 'block');
+            return;
+        }
+        
+        categories.forEach(category => {
+            const links = category.querySelectorAll('.help-category-link');
+            let hasMatch = false;
+            
+            links.forEach(link => {
+                if (link.textContent.toLowerCase().includes(query.toLowerCase())) {
+                    link.style.display = 'block';
+                    hasMatch = true;
+                } else {
+                    link.style.display = 'none';
+                }
+            });
+            
+            category.style.display = hasMatch ? 'block' : 'none';
+        });
+    }
+    
+    resetTutorials() {
+        if (confirm('¿Reiniciar todos los tutoriales? Esto marcará todos como no completados.')) {
+            this.userProgress.completedTutorials = [];
+            this.userProgress.firstVisit = true;
+            this.userProgress.helpShown = [];
+            this.saveUserProgress();
+            
+            if (typeof showSuccess !== 'undefined') {
+                showSuccess('Tutoriales Reiniciados', 'Todos los tutoriales han sido marcados como no completados');
+            }
+        }
+    }
+    
+    createTooltip(element, options) {
+        const tooltip = document.createElement('div');
+        tooltip.className = `help-tooltip ${options.position || 'bottom'}`;
+        
+        tooltip.innerHTML = `
+            <div class="help-header">
+                <div class="help-icon">
+                    <i class="bi bi-lightbulb"></i>
+                </div>
+                <h6 class="help-title">${options.title}</h6>
+            </div>
+            <div class="help-content">${options.content}</div>
+            <div class="help-actions">
+                <button class="help-btn help-btn-outline" onclick="this.parentElement.parentElement.remove()">
+                    Cerrar
+                </button>
+            </div>
+        `;
+        
+        // Position tooltip
+        const rect = element.getBoundingClientRect();
+        tooltip.style.left = rect.left + (rect.width / 2) - 160 + 'px';
+        tooltip.style.top = rect.bottom + 10 + 'px';
+        
+        document.body.appendChild(tooltip);
+        
+        setTimeout(() => {
+            tooltip.classList.add('show');
+        }, 10);
+        
+        // Auto-remove after 8 seconds
+        setTimeout(() => {
+            if (tooltip.parentNode) {
+                tooltip.remove();
+            }
+        }, 8000);
+    }
+}
+
+// Initialize help system
+const helpSystem = new HelpSystem();
+
+// Global functions for easy access
+function toggleHelpPanel() {
+    helpSystem.toggleHelpPanel();
+}
+
+function closeHelpPanel() {
+    helpSystem.closeHelpPanel();
+}
+
+function startTutorial(tutorialName) {
+    helpSystem.startTutorial(tutorialName);
+}
+
+function nextTutorialStep() {
+    helpSystem.nextTutorialStep();
+}
+
+function prevTutorialStep() {
+    helpSystem.prevTutorialStep();
+}
+
+function skipTutorial() {
+    helpSystem.skipTutorial();
+}
+
+function showQuickHelp(helpKey) {
+    helpSystem.showQuickHelp(helpKey);
+}
+
+function closeQuickHelp() {
+    helpSystem.closeQuickHelp();
+}
+
+function toggleCategory(categoryId) {
+    helpSystem.toggleCategory(categoryId);
+}
+
+function resetTutorials() {
+    helpSystem.resetTutorials();
+}
+
+function startRelatedTutorial() {
+    // This would start a related tutorial based on current context
+    startTutorial('onboarding');
+}
+
+// Auto-show contextual help based on page
+document.addEventListener('DOMContentLoaded', function() {
+    const path = window.location.pathname;
+    
+    // Show specific help based on current page
+    if (path.includes('crear_maquina')) {
+        setTimeout(() => {
+            helpSystem.showQuickHelp('machine-form', {
+                title: 'Registrar Máquina',
+                content: 'Completa todos los campos requeridos. El código de inventario debe ser único.'
+            });
+        }, 2000);
+    }
+    
+    if (path.includes('chat_interface')) {
+        setTimeout(() => {
+            helpSystem.showQuickHelp('ia-tips');
+        }, 3000);
+    }
+});
+</script>

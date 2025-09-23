@@ -1,0 +1,1048 @@
+<!-- templates/components/advanced_search.html -->
+<style>
+    .smart-search-container {
+        position: relative;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .smart-search-input {
+        width: 100%;
+        padding: 1rem 1.5rem 1rem 3.5rem;
+        border: 2px solid #e9ecef;
+        border-radius: 25px;
+        font-size: 1rem;
+        background: white;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .smart-search-input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 4px 20px rgba(0,123,255,0.15);
+        transform: translateY(-1px);
+    }
+    
+    .smart-search-icon {
+        position: absolute;
+        left: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #6c757d;
+        font-size: 1.2rem;
+        z-index: 2;
+    }
+    
+    .smart-search-loading {
+        position: absolute;
+        right: 1.25rem;
+        top: 50%;
+        transform: translateY(-50%);
+        display: none;
+    }
+    
+    .smart-search-suggestions {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        border: 1px solid #e9ecef;
+        z-index: 1000;
+        max-height: 400px;
+        overflow-y: auto;
+        display: none;
+        margin-top: 0.5rem;
+    }
+    
+    .smart-search-suggestions.show {
+        display: block;
+        animation: slideDown 0.3s ease;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .search-section {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f8f9fa;
+    }
+    
+    .search-section:last-child {
+        border-bottom: none;
+    }
+    
+    .search-section-title {
+        padding: 0.5rem 1.25rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.25rem;
+    }
+    
+    .search-suggestion {
+        padding: 0.75rem 1.25rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+    }
+    
+    .search-suggestion:hover {
+        background: #f8f9fa;
+    }
+    
+    .search-suggestion.selected {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+    
+    .search-suggestion-icon {
+        width: 35px;
+        height: 35px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .search-suggestion-content {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .search-suggestion-title {
+        font-weight: 500;
+        margin-bottom: 0.25rem;
+        color: #212529;
+    }
+    
+    .search-suggestion-subtitle {
+        font-size: 0.85rem;
+        color: #6c757d;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    
+    .search-suggestion-meta {
+        font-size: 0.75rem;
+        color: #9e9e9e;
+        margin-top: 0.25rem;
+    }
+    
+    .search-suggestion-badge {
+        background: #e9ecef;
+        color: #495057;
+        padding: 0.2rem 0.5rem;
+        border-radius: 10px;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+    
+    .search-machine .search-suggestion-icon {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+    }
+    
+    .search-order .search-suggestion-icon {
+        background: linear-gradient(135deg, #ffc107, #fd7e14);
+        color: white;
+    }
+    
+    .search-document .search-suggestion-icon {
+        background: linear-gradient(135deg, #17a2b8, #138496);
+        color: white;
+    }
+    
+    .search-user .search-suggestion-icon {
+        background: linear-gradient(135deg, #28a745, #20c997);
+        color: white;
+    }
+    
+    .search-no-results {
+        padding: 2rem 1.25rem;
+        text-align: center;
+        color: #6c757d;
+    }
+    
+    .search-no-results-icon {
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        opacity: 0.5;
+    }
+    
+    .search-filters {
+        padding: 1rem 1.25rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+    }
+    
+    .search-filter-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    
+    .search-filter-chip {
+        background: white;
+        border: 1px solid #dee2e6;
+        color: #495057;
+        padding: 0.375rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+    }
+    
+    .search-filter-chip:hover {
+        background: #e9ecef;
+    }
+    
+    .search-filter-chip.active {
+        background: #007bff;
+        color: white;
+        border-color: #007bff;
+    }
+    
+    .search-recent {
+        padding: 1rem 1.25rem;
+        background: #f8f9fa;
+    }
+    
+    .search-recent-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 0.75rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .search-recent-clear {
+        font-size: 0.75rem;
+        color: #007bff;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    
+    .search-recent-clear:hover {
+        text-decoration: underline;
+    }
+    
+    .search-recent-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0;
+        cursor: pointer;
+        color: #6c757d;
+        font-size: 0.9rem;
+        transition: color 0.2s ease;
+    }
+    
+    .search-recent-item:hover {
+        color: #007bff;
+    }
+    
+    .search-advanced-options {
+        padding: 1rem 1.25rem;
+        border-top: 1px solid #e9ecef;
+        background: #f8f9fa;
+    }
+    
+    .search-advanced-toggle {
+        background: none;
+        border: none;
+        color: #007bff;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0;
+    }
+    
+    .search-advanced-toggle:hover {
+        text-decoration: underline;
+    }
+    
+    .search-advanced-form {
+        margin-top: 1rem;
+        padding-top: 1rem;
+        border-top: 1px solid #dee2e6;
+        display: none;
+    }
+    
+    .search-advanced-form.show {
+        display: block;
+        animation: slideDown 0.3s ease;
+    }
+    
+    .search-advanced-row {
+        display: flex;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
+        align-items: center;
+    }
+    
+    .search-advanced-field {
+        flex: 1;
+    }
+    
+    .search-advanced-operator {
+        width: 80px;
+        flex-shrink: 0;
+    }
+    
+    .search-advanced-input {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        font-size: 0.85rem;
+    }
+    
+    .search-advanced-input:focus {
+        outline: none;
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,0.25);
+    }
+    
+    .search-keyboard-shortcuts {
+        padding: 0.75rem 1.25rem;
+        background: #f8f9fa;
+        border-top: 1px solid #e9ecef;
+        font-size: 0.75rem;
+        color: #6c757d;
+    }
+    
+    .search-shortcut {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        margin-right: 1rem;
+    }
+    
+    .search-key {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 3px;
+        padding: 0.1rem 0.3rem;
+        font-family: monospace;
+        font-size: 0.7rem;
+    }
+    
+    .search-highlight {
+        background: rgba(255, 193, 7, 0.3);
+        padding: 0.1rem 0.2rem;
+        border-radius: 2px;
+        font-weight: 500;
+    }
+    
+    @media (max-width: 768px) {
+        .smart-search-container {
+            max-width: 100%;
+        }
+        
+        .smart-search-input {
+            padding: 0.875rem 1.25rem 0.875rem 3rem;
+            font-size: 0.95rem;
+        }
+        
+        .search-advanced-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+        
+        .search-advanced-operator {
+            width: 100%;
+        }
+        
+        .search-filter-chips {
+            justify-content: center;
+        }
+        
+        .search-keyboard-shortcuts {
+            display: none;
+        }
+    }
+</style>
+
+<!-- Smart Search Component -->
+<div class="smart-search-container" id="smartSearchContainer">
+    <div class="position-relative">
+        <i class="bi bi-search smart-search-icon"></i>
+        <input type="text" 
+               class="smart-search-input" 
+               id="smartSearchInput"
+               placeholder="🔍 Buscar máquinas, órdenes, documentos, usuarios..."
+               autocomplete="off"
+               spellcheck="false">
+        <div class="smart-search-loading" id="searchLoading">
+            <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Buscando...</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="smart-search-suggestions" id="searchSuggestions">
+        <!-- Search Filters -->
+        <div class="search-filters">
+            <div class="search-filter-chips">
+                <button class="search-filter-chip active" data-filter="all">
+                    <i class="bi bi-search"></i>
+                    Todo
+                </button>
+                <button class="search-filter-chip" data-filter="machines">
+                    <i class="bi bi-gear"></i>
+                    Máquinas
+                </button>
+                <button class="search-filter-chip" data-filter="orders">
+                    <i class="bi bi-clipboard"></i>
+                    Órdenes
+                </button>
+                <button class="search-filter-chip" data-filter="documents">
+                    <i class="bi bi-file-text"></i>
+                    Documentos
+                </button>
+                <button class="search-filter-chip" data-filter="users">
+                    <i class="bi bi-person"></i>
+                    Usuarios
+                </button>
+            </div>
+        </div>
+        
+        <!-- Search Results Container -->
+        <div id="searchResultsContainer">
+            <!-- Results will be populated here -->
+        </div>
+        
+        <!-- Recent Searches -->
+        <div class="search-recent" id="searchRecent">
+            <div class="search-recent-title">
+                Búsquedas recientes
+                <a href="#" class="search-recent-clear" onclick="clearRecentSearches()">Limpiar</a>
+            </div>
+            <div id="recentSearchesList">
+                <!-- Recent searches will be populated here -->
+            </div>
+        </div>
+        
+        <!-- Advanced Search Options -->
+        <div class="search-advanced-options">
+            <button class="search-advanced-toggle" onclick="toggleAdvancedSearch()">
+                <i class="bi bi-sliders"></i>
+                Búsqueda avanzada
+                <i class="bi bi-chevron-down" id="advancedToggleIcon"></i>
+            </button>
+            
+            <div class="search-advanced-form" id="advancedSearchForm">
+                <div class="search-advanced-row">
+                    <select class="search-advanced-operator search-advanced-input">
+                        <option value="and">Contiene</option>
+                        <option value="or">Cualquiera</option>
+                        <option value="not">No contiene</option>
+                    </select>
+                    <input type="text" class="search-advanced-input" placeholder="Término de búsqueda">
+                </div>
+                <div class="search-advanced-row">
+                    <select class="search-advanced-field search-advanced-input">
+                        <option value="all">Todos los campos</option>
+                        <option value="code">Código</option>
+                        <option value="name">Nombre</option>
+                        <option value="brand">Marca</option>
+                        <option value="location">Ubicación</option>
+                    </select>
+                    <input type="text" class="search-advanced-input" placeholder="Valor específico">
+                </div>
+                <div class="search-advanced-row">
+                    <select class="search-advanced-input">
+                        <option value="">Fecha</option>
+                        <option value="created">Fecha de creación</option>
+                        <option value="modified">Última modificación</option>
+                        <option value="maintenance">Último mantenimiento</option>
+                    </select>
+                    <input type="date" class="search-advanced-input">
+                </div>
+                <div class="text-end mt-2">
+                    <button class="btn btn-sm btn-outline-secondary me-2" onclick="clearAdvancedSearch()">
+                        Limpiar
+                    </button>
+                    <button class="btn btn-sm btn-primary" onclick="performAdvancedSearch()">
+                        Buscar
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Keyboard Shortcuts -->
+        <div class="search-keyboard-shortcuts">
+            <div class="search-shortcut">
+                <kbd class="search-key">↑</kbd><kbd class="search-key">↓</kbd>
+                Navegar
+            </div>
+            <div class="search-shortcut">
+                <kbd class="search-key">Enter</kbd>
+                Seleccionar
+            </div>
+            <div class="search-shortcut">
+                <kbd class="search-key">Esc</kbd>
+                Cerrar
+            </div>
+            <div class="search-shortcut">
+                <kbd class="search-key">Ctrl</kbd>+<kbd class="search-key">K</kbd>
+                Enfocar
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+class SmartSearch {
+    constructor() {
+        this.input = document.getElementById('smartSearchInput');
+        this.suggestions = document.getElementById('searchSuggestions');
+        this.resultsContainer = document.getElementById('searchResultsContainer');
+        this.recentContainer = document.getElementById('recentSearchesList');
+        this.loadingIndicator = document.getElementById('searchLoading');
+        
+        this.isOpen = false;
+        this.selectedIndex = -1;
+        this.currentFilter = 'all';
+        this.searchTimeout = null;
+        this.cache = new Map();
+        this.recentSearches = this.loadRecentSearches();
+        
+        this.init();
+    }
+    
+    init() {
+        this.setupEventListeners();
+        this.setupKeyboardShortcuts();
+        this.loadRecentSearches();
+        this.setupFilterChips();
+    }
+    
+    setupEventListeners() {
+        // Input events
+        this.input.addEventListener('input', (e) => {
+            this.handleInput(e.target.value);
+        });
+        
+        this.input.addEventListener('focus', () => {
+            this.showSuggestions();
+        });
+        
+        this.input.addEventListener('blur', (e) => {
+            // Delay hiding to allow clicking on suggestions
+            setTimeout(() => {
+                if (!this.suggestions.matches(':hover')) {
+                    this.hideSuggestions();
+                }
+            }, 200);
+        });
+        
+        // Keyboard navigation
+        this.input.addEventListener('keydown', (e) => {
+            this.handleKeyDown(e);
+        });
+        
+        // Click outside to close
+        document.addEventListener('click', (e) => {
+            if (!this.input.closest('.smart-search-container').contains(e.target)) {
+                this.hideSuggestions();
+            }
+        });
+    }
+    
+    setupKeyboardShortcuts() {
+        document.addEventListener('keydown', (e) => {
+            // Ctrl+K or Cmd+K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                this.input.focus();
+                this.input.select();
+            }
+            
+            // Escape to close
+            if (e.key === 'Escape' && this.isOpen) {
+                this.hideSuggestions();
+                this.input.blur();
+            }
+        });
+    }
+    
+    setupFilterChips() {
+        const filterChips = document.querySelectorAll('.search-filter-chip');
+        filterChips.forEach(chip => {
+            chip.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                // Update active chip
+                filterChips.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                
+                // Update current filter
+                this.currentFilter = chip.dataset.filter;
+                
+                // Re-search with new filter
+                const query = this.input.value.trim();
+                if (query) {
+                    this.performSearch(query);
+                }
+            });
+        });
+    }
+    
+    handleInput(value) {
+        clearTimeout(this.searchTimeout);
+        
+        if (value.trim().length === 0) {
+            this.showRecentSearches();
+            return;
+        }
+        
+        if (value.trim().length < 2) {
+            this.hideResults();
+            return;
+        }
+        
+        // Debounce search
+        this.searchTimeout = setTimeout(() => {
+            this.performSearch(value.trim());
+        }, 300);
+    }
+    
+    handleKeyDown(e) {
+        if (!this.isOpen) return;
+        
+        const suggestions = this.suggestions.querySelectorAll('.search-suggestion');
+        
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                this.selectedIndex = Math.min(this.selectedIndex + 1, suggestions.length - 1);
+                this.updateSelection(suggestions);
+                break;
+                
+            case 'ArrowUp':
+                e.preventDefault();
+                this.selectedIndex = Math.max(this.selectedIndex - 1, -1);
+                this.updateSelection(suggestions);
+                break;
+                
+            case 'Enter':
+                e.preventDefault();
+                if (this.selectedIndex >= 0 && suggestions[this.selectedIndex]) {
+                    this.selectSuggestion(suggestions[this.selectedIndex]);
+                } else if (this.input.value.trim()) {
+                    this.performDirectSearch(this.input.value.trim());
+                }
+                break;
+                
+            case 'Escape':
+                this.hideSuggestions();
+                break;
+        }
+    }
+    
+    updateSelection(suggestions) {
+        suggestions.forEach((s, index) => {
+            s.classList.toggle('selected', index === this.selectedIndex);
+        });
+        
+        // Scroll selected item into view
+        if (this.selectedIndex >= 0 && suggestions[this.selectedIndex]) {
+            suggestions[this.selectedIndex].scrollIntoView({
+                block: 'nearest',
+                behavior: 'smooth'
+            });
+        }
+    }
+    
+    async performSearch(query) {
+        this.showLoading();
+        
+        // Check cache first
+        const cacheKey = `${query}-${this.currentFilter}`;
+        if (this.cache.has(cacheKey)) {
+            this.displayResults(this.cache.get(cacheKey));
+            this.hideLoading();
+            return;
+        }
+        
+        try {
+            const results = await this.searchAPI(query, this.currentFilter);
+            this.cache.set(cacheKey, results);
+            this.displayResults(results);
+        } catch (error) {
+            console.error('Search error:', error);
+            this.displayError('Error en la búsqueda. Intenta nuevamente.');
+        } finally {
+            this.hideLoading();
+        }
+    }
+    
+    async searchAPI(query, filter) {
+        // Simulate API call with realistic delay
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Mock data - replace with real API call
+        const mockData = {
+            machines: [
+                {
+                    id: 1,
+                    type: 'machine',
+                    title: 'Torno CNC-001',
+                    subtitle: 'Siemens 840D - Taller de Mecanizado',
+                    meta: 'Operativa • Última revisión: 15/12/2024',
+                    url: '/maquinaria/1/',
+                    badge: 'Operativa'
+                },
+                {
+                    id: 2,
+                    type: 'machine',
+                    title: 'Fresadora FRE-002',
+                    subtitle: 'Huron KX10 - Taller de Mecanizado',
+                    meta: 'Disponible • Próximo mantenimiento: 20/12/2024',
+                    url: '/maquinaria/2/',
+                    badge: 'Disponible'
+                }
+            ],
+            orders: [
+                {
+                    id: 1,
+                    type: 'order',
+                    title: 'OT2024-001',
+                    subtitle: 'Mantenimiento preventivo - Torno CNC-001',
+                    meta: 'Pendiente • Programada para: 18/12/2024',
+                    url: '/mantenimiento/ordenes/1/',
+                    badge: 'Pendiente'
+                }
+            ],
+            documents: [
+                {
+                    id: 1,
+                    type: 'document',
+                    title: 'Manual Siemens 840D',
+                    subtitle: 'Manual de operación y mantenimiento',
+                    meta: 'PDF • 2.5 MB • Subido: 10/12/2024',
+                    url: '/documentos/manuales/1/',
+                    badge: 'Manual'
+                }
+            ],
+            users: [
+                {
+                    id: 1,
+                    type: 'user',
+                    title: 'Carlos Rodríguez',
+                    subtitle: 'Instructor - Mecánica Industrial',
+                    meta: 'Centro Tecnológico Industrial',
+                    url: '/usuarios/1/',
+                    badge: 'Instructor'
+                }
+            ]
+        };
+        
+        // Filter results based on query and filter type
+        let results = [];
+        const queryLower = query.toLowerCase();
+        
+        if (filter === 'all' || filter === 'machines') {
+            results.push(...mockData.machines.filter(item => 
+                item.title.toLowerCase().includes(queryLower) ||
+                item.subtitle.toLowerCase().includes(queryLower)
+            ));
+        }
+        
+        if (filter === 'all' || filter === 'orders') {
+            results.push(...mockData.orders.filter(item => 
+                item.title.toLowerCase().includes(queryLower) ||
+                item.subtitle.toLowerCase().includes(queryLower)
+            ));
+        }
+        
+        if (filter === 'all' || filter === 'documents') {
+            results.push(...mockData.documents.filter(item => 
+                item.title.toLowerCase().includes(queryLower) ||
+                item.subtitle.toLowerCase().includes(queryLower)
+            ));
+        }
+        
+        if (filter === 'all' || filter === 'users') {
+            results.push(...mockData.users.filter(item => 
+                item.title.toLowerCase().includes(queryLower) ||
+                item.subtitle.toLowerCase().includes(queryLower)
+            ));
+        }
+        
+        return results;
+    }
+    
+    displayResults(results) {
+        this.selectedIndex = -1;
+        
+        if (results.length === 0) {
+            this.displayNoResults();
+            return;
+        }
+        
+        // Group results by type
+        const grouped = results.reduce((acc, item) => {
+            if (!acc[item.type]) acc[item.type] = [];
+            acc[item.type].push(item);
+            return acc;
+        }, {});
+        
+        let html = '';
+        
+        const typeLabels = {
+            machine: '🔧 Máquinas',
+            order: '📋 Órdenes de Trabajo',
+            document: '📄 Documentos',
+            user: '👤 Usuarios'
+        };
+        
+        const typeClasses = {
+            machine: 'search-machine',
+            order: 'search-order',
+            document: 'search-document',
+            user: 'search-user'
+        };
+        
+        const typeIcons = {
+            machine: 'bi-gear-fill',
+            order: 'bi-clipboard-check',
+            document: 'bi-file-text',
+            user: 'bi-person-fill'
+        };
+        
+        Object.keys(grouped).forEach(type => {
+            html += `
+                <div class="search-section">
+                    <div class="search-section-title">${typeLabels[type]}</div>
+                    ${grouped[type].map(item => `
+                        <button class="search-suggestion ${typeClasses[type]}" onclick="smartSearch.selectItem('${item.url}', '${item.title}')">
+                            <div class="search-suggestion-icon">
+                                <i class="${typeIcons[type]}"></i>
+                            </div>
+                            <div class="search-suggestion-content">
+                                <div class="search-suggestion-title">${this.highlightQuery(item.title)}</div>
+                                <div class="search-suggestion-subtitle">${this.highlightQuery(item.subtitle)}</div>
+                                <div class="search-suggestion-meta">${item.meta}</div>
+                            </div>
+                            <div class="search-suggestion-badge">${item.badge}</div>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        });
+        
+        this.resultsContainer.innerHTML = html;
+        this.showSuggestions();
+    }
+    
+    displayNoResults() {
+        this.resultsContainer.innerHTML = `
+            <div class="search-no-results">
+                <div class="search-no-results-icon">
+                    <i class="bi bi-search"></i>
+                </div>
+                <div>
+                    <strong>No se encontraron resultados</strong><br>
+                    <small>Intenta con otros términos de búsqueda</small>
+                </div>
+            </div>
+        `;
+        this.showSuggestions();
+    }
+    
+    displayError(message) {
+        this.resultsContainer.innerHTML = `
+            <div class="search-no-results">
+                <div class="search-no-results-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <div>
+                    <strong>Error</strong><br>
+                    <small>${message}</small>
+                </div>
+            </div>
+        `;
+        this.showSuggestions();
+    }
+    
+    showRecentSearches() {
+        if (this.recentSearches.length === 0) {
+            this.hideResults();
+            return;
+        }
+        
+        let html = '';
+        this.recentSearches.forEach(search => {
+            html += `
+                <div class="search-recent-item" onclick="smartSearch.performRecentSearch('${search}')">
+                    <i class="bi bi-clock-history"></i>
+                    ${search}
+                </div>
+            `;
+        });
+        
+        this.recentContainer.innerHTML = html;
+        document.getElementById('searchRecent').style.display = 'block';
+        this.resultsContainer.innerHTML = '';
+        this.showSuggestions();
+    }
+    
+    hideResults() {
+        this.resultsContainer.innerHTML = '';
+        document.getElementById('searchRecent').style.display = 'none';
+    }
+    
+    highlightQuery(text) {
+        const query = this.input.value.trim();
+        if (!query) return text;
+        
+        const regex = new RegExp(`(${query})`, 'gi');
+        return text.replace(regex, '<span class="search-highlight">$1</span>');
+    }
+    
+    showSuggestions() {
+        this.suggestions.classList.add('show');
+        this.isOpen = true;
+    }
+    
+    hideSuggestions() {
+        this.suggestions.classList.remove('show');
+        this.isOpen = false;
+        this.selectedIndex = -1;
+    }
+    
+    showLoading() {
+        this.loadingIndicator.style.display = 'block';
+    }
+    
+    hideLoading() {
+        this.loadingIndicator.style.display = 'none';
+    }
+    
+    selectItem(url, title) {
+        this.addToRecentSearches(title);
+        this.hideSuggestions();
+        window.location.href = url;
+    }
+    
+    performRecentSearch(query) {
+        this.input.value = query;
+        this.performSearch(query);
+    }
+    
+    performDirectSearch(query) {
+        this.addToRecentSearches(query);
+        this.hideSuggestions();
+        
+        // Redirect to search results page
+        const searchUrl = `/buscar/?q=${encodeURIComponent(query)}&filter=${this.currentFilter}`;
+        window.location.href = searchUrl;
+    }
+    
+    addToRecentSearches(query) {
+        if (!query || this.recentSearches.includes(query)) return;
+        
+        this.recentSearches.unshift(query);
+        this.recentSearches = this.recentSearches.slice(0, 10); // Keep only last 10
+        
+        localStorage.setItem('sena_recent_searches', JSON.stringify(this.recentSearches));
+    }
+    
+    loadRecentSearches() {
+        try {
+            const stored = localStorage.getItem('sena_recent_searches');
+            this.recentSearches = stored ? JSON.parse(stored) : [];
+        } catch (e) {
+            this.recentSearches = [];
+        }
+        return this.recentSearches;
+    }
+    
+    clearRecentSearches() {
+        this.recentSearches = [];
+        localStorage.removeItem('sena_recent_searches');
+        this.recentContainer.innerHTML = '';
+        document.getElementById('searchRecent').style.display = 'none';
+    }
+}
+
+// Advanced search functions
+function toggleAdvancedSearch() {
+    const form = document.getElementById('advancedSearchForm');
+    const icon = document.getElementById('advancedToggleIcon');
+    
+    if (form.classList.contains('show')) {
+        form.classList.remove('show');
+        icon.className = 'bi bi-chevron-down';
+    } else {
+        form.classList.add('show');
+        icon.className = 'bi bi-chevron-up';
+    }
+}
+
+function clearAdvancedSearch() {
+    const form = document.getElementById('advancedSearchForm');
+    const inputs = form.querySelectorAll('input, select');
+    inputs.forEach(input => {
+        input.value = '';
+    });
+}
+
+function performAdvancedSearch() {
+    const form = document.getElementById('advancedSearchForm');
+    const formData = new FormData(form);
+    
+    // Build advanced search query
+    const params = new URLSearchParams();
+    for (let [key, value] of formData.entries()) {
+        if (value.trim()) {
+            params.append(key, value);
+        }
+    }
+    
+    // Redirect to advanced search results
+    window.location.href = `/buscar/avanzada/?${params.toString()}`;
+}
+
+function clearRecentSearches() {
+    smartSearch.clearRecentSearches();
+}
+
+// Initialize smart search
+const smartSearch = new SmartSearch();
+
+// Global access for onclick handlers
+window.smartSearch = smartSearch;
+</script>
