@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python manage.py:*)",
+      "Bash(pip install:*)",
+      "Bash(dir:*)",
+      "Bash(move modern_login.html usuariosmodern_login.html)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

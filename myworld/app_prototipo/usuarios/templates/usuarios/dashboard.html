@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - SENA Maquinaria</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        :root {
+            --sena-primary: #39a900;
+            --sena-secondary: #00324d;
+            --sena-accent: #ff6b35;
+            --sidebar-width: 280px;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            width: var(--sidebar-width);
+            background: linear-gradient(135deg, var(--sena-secondary) 0%, var(--sena-primary) 100%);
+            color: white;
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .sidebar-header .logo {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .sidebar-header h4 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .sidebar-header p {
+            margin: 0;
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            padding: 0;
+            margin: 1rem 0;
+        }
+
+        .nav-item {
+            margin: 0;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            color: white;
+            background: rgba(255,255,255,0.1);
+            border-left-color: var(--sena-accent);
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-link i {
+            width: 24px;
+            height: 24px;
+            margin-right: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            transition: margin-left 0.3s ease;
+        }
+
+        .top-navbar {
+            background: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .page-header {
+            margin: 0;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: var(--sena-secondary);
+            font-weight: 600;
+        }
+
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--sena-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .dashboard-content {
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid var(--sena-primary);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .stat-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--sena-secondary);
+            margin: 0;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin: 0;
+        }
+
+        .quick-actions {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+
+        .quick-actions h5 {
+            margin-bottom: 1rem;
+            color: var(--sena-secondary);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            text-decoration: none;
+            color: var(--sena-secondary);
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .action-btn:hover {
+            border-color: var(--sena-primary);
+            color: var(--sena-primary);
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .action-btn i {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .recent-activity {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .recent-activity h5 {
+            margin-bottom: 1rem;
+            color: var(--sena-secondary);
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            color: white;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-content h6 {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        .activity-content p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.show {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .top-navbar {
+                padding: 1rem;
+            }
+
+            .dashboard-content {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="bi bi-gear-wide-connected"></i>
+            </div>
+            <h4>SENA Maquinaria</h4>
+            <p>Sistema de Gestión</p>
+        </div>
+
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="{% url 'usuarios:dashboard' %}" class="nav-link active">
+                    <i class="bi bi-house"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'maquinaria:dashboard' %}" class="nav-link">
+                    <i class="bi bi-gear"></i>
+                    <span>Maquinaria</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'ia_assistant:dashboard' %}" class="nav-link">
+                    <i class="bi bi-robot"></i>
+                    <span>IA Assistant</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'reportes:dashboard' %}" class="nav-link">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Reportes</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'documentos:repositorio' %}" class="nav-link">
+                    <i class="bi bi-files"></i>
+                    <span>Documentos</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'components:widgets' %}" class="nav-link">
+                    <i class="bi bi-puzzle"></i>
+                    <span>Componentes</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'usuarios:perfil' %}" class="nav-link">
+                    <i class="bi bi-person-circle"></i>
+                    <span>Mi Perfil</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'usuarios:logout' %}" class="nav-link">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>Cerrar Sesión</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navigation -->
+        <div class="top-navbar">
+            <div class="page-header">
+                <button class="btn btn-link d-md-none" onclick="toggleSidebar()">
+                    <i class="bi bi-list fs-4"></i>
+                </button>
+                <h1>Dashboard Principal</h1>
+            </div>
+
+            <div class="user-menu">
+                <div class="user-avatar">
+                    {{ user.first_name.0|default:"U" }}{{ user.last_name.0|default:"S" }}
+                </div>
+                <div>
+                    <strong>{{ user.get_full_name|default:user.username }}</strong>
+                    <small class="d-block text-muted">Bienvenido al sistema</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: var(--sena-primary);">
+                            <i class="bi bi-gear"></i>
+                        </div>
+                    </div>
+                    <h2 class="stat-value">{{ total_maquinas|default:0 }}</h2>
+                    <p class="stat-label">Total Máquinas</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: #28a745;">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                    <h2 class="stat-value">{{ maquinas_operativas|default:0 }}</h2>
+                    <p class="stat-label">Máquinas Operativas</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: #dc3545;">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                    <h2 class="stat-value">{{ alertas_activas|default:0 }}</h2>
+                    <p class="stat-label">Alertas Activas</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: #6f42c1;">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                    </div>
+                    <h2 class="stat-value">24/7</h2>
+                    <p class="stat-label">IA Assistant</p>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h5><i class="bi bi-lightning me-2"></i>Acciones Rápidas</h5>
+                <div class="action-buttons">
+                    <a href="{% url 'maquinaria:crear_maquina' %}" class="action-btn">
+                        <i class="bi bi-plus-circle"></i>
+                        <div>
+                            <strong>Nueva Máquina</strong>
+                            <small class="d-block">Registrar equipamiento</small>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'ia_assistant:chat' %}" class="action-btn">
+                        <i class="bi bi-chat-dots"></i>
+                        <div>
+                            <strong>Consultar IA</strong>
+                            <small class="d-block">Asistente especializado</small>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'reportes:generar_reporte' %}" class="action-btn">
+                        <i class="bi bi-file-earmark-text"></i>
+                        <div>
+                            <strong>Generar Reporte</strong>
+                            <small class="d-block">Análisis y estadísticas</small>
+                        </div>
+                    </a>
+
+                    <a href="{% url 'maquinaria:alertas' %}" class="action-btn">
+                        <i class="bi bi-bell"></i>
+                        <div>
+                            <strong>Ver Alertas</strong>
+                            <small class="d-block">Notificaciones del sistema</small>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <h5><i class="bi bi-clock-history me-2"></i>Actividad Reciente</h5>
+
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: var(--sena-primary);">
+                        <i class="bi bi-gear"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h6>Sistema inicializado correctamente</h6>
+                        <p>Todos los módulos están funcionando</p>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #17a2b8;">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h6>IA Assistant disponible</h6>
+                        <p>Listo para consultas especializadas</p>
+                    </div>
+                </div>
+
+                <div class="activity-item">
+                    <div class="activity-icon" style="background: #28a745;">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                    <div class="activity-content">
+                        <h6>Sistema de seguridad activo</h6>
+                        <p>Acceso controlado y monitorizado</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('show');
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(e) {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.querySelector('[onclick="toggleSidebar()"]');
+
+            if (window.innerWidth <= 768) {
+                if (!sidebar.contains(e.target) && e.target !== toggleBtn) {
+                    sidebar.classList.remove('show');
+                }
+            }
+        });
+
+        // Auto-refresh stats every 30 seconds
+        setInterval(() => {
+            fetch('/api/usuarios/estadisticas/')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update stats if API is implemented
+                        console.log('Stats updated:', data);
+                    }
+                })
+                .catch(error => console.log('Stats update failed:', error));
+        }, 30000);
+    </script>
+</body>
+</html>
