@@ -1,0 +1,290 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard Reportes - SENA{% endblock %}
+{% block page_title %}Dashboard de Reportes{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Stats Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Reportes Generados</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_reportes|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-file-earmark-text fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Este Mes</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ reportes_mes|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-calendar-month fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Tipos Disponibles</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ tipos_disponibles|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-collection fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Programados</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ reportes_programados|default:0 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-clock-history fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">Generación Rápida de Reportes</h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="report-card h-100 p-3 border rounded text-center">
+                    <i class="bi bi-gear fs-1 text-primary mb-2"></i>
+                    <h6>Estado de Maquinaria</h6>
+                    <p class="text-muted small">Reporte general del estado actual de todas las máquinas</p>
+                    <a href="{% url 'reportes:generar_reporte' %}?type=estado_maquinaria" class="btn btn-sm btn-primary">Generar</a>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="report-card h-100 p-3 border rounded text-center">
+                    <i class="bi bi-wrench fs-1 text-success mb-2"></i>
+                    <h6>Mantenimiento</h6>
+                    <p class="text-muted small">Historial y programación de mantenimientos</p>
+                    <a href="{% url 'reportes:reporte_mantenimiento' %}" class="btn btn-sm btn-success">Generar</a>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="report-card h-100 p-3 border rounded text-center">
+                    <i class="bi bi-currency-dollar fs-1 text-warning mb-2"></i>
+                    <h6>Costos Operativos</h6>
+                    <p class="text-muted small">Análisis de costos de operación y mantenimiento</p>
+                    <a href="{% url 'reportes:reporte_costos' %}" class="btn btn-sm btn-warning">Generar</a>
+                </div>
+            </div>
+
+            <div class="col-md-3 mb-3">
+                <div class="report-card h-100 p-3 border rounded text-center">
+                    <i class="bi bi-speedometer2 fs-1 text-info mb-2"></i>
+                    <h6>Eficiencia</h6>
+                    <p class="text-muted small">Métricas de rendimiento y utilización</p>
+                    <a href="{% url 'reportes:reporte_eficiencia' %}" class="btn btn-sm btn-info">Generar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Reports -->
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Reportes Recientes</h6>
+                <a href="{% url 'reportes:lista_reportes' %}" class="btn btn-sm btn-outline-primary">Ver Todos</a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Tipo</th>
+                                <th>Descripción</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% if reportes_recientes %}
+                                {% for reporte in reportes_recientes %}
+                                <tr>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            {{ reporte.tipo_reporte.nombre }}
+                                        </span>
+                                    </td>
+                                    <td>{{ reporte.titulo }}</td>
+                                    <td>{{ reporte.fecha_solicitud|date:"d/m/Y" }}</td>
+                                    <td>
+                                        <span class="badge {% if reporte.estado == 'completado' %}bg-success{% elif reporte.estado == 'generando' %}bg-warning{% elif reporte.estado == 'error' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {{ reporte.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if reporte.estado == 'completado' %}
+                                            <a href="{% url 'reportes:descargar_reporte' pk=reporte.pk %}" class="btn btn-sm btn-outline-primary" title="Descargar">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                            <a href="{% url 'reportes:ver_reporte' pk=reporte.pk %}" class="btn btn-sm btn-outline-secondary" title="Ver">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                        {% elif reporte.estado == 'procesando' %}
+                                            <button class="btn btn-sm btn-outline-secondary" disabled title="Procesando">
+                                                <i class="bi bi-clock"></i>
+                                            </button>
+                                        {% else %}
+                                            <button class="btn btn-sm btn-outline-danger" disabled title="Error">
+                                                <i class="bi bi-exclamation-triangle"></i>
+                                            </button>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-4">
+                                        <div class="text-muted">
+                                            <i class="bi bi-file-earmark-text fs-1 mb-3"></i>
+                                            <h5>No hay reportes recientes</h5>
+                                            <p>Genera tu primer reporte para ver el historial</p>
+                                            <a href="{% url 'reportes:generar_reporte' %}" class="btn btn-primary">
+                                                <i class="bi bi-plus-circle me-2"></i>Generar Reporte
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts and Analytics -->
+    <div class="col-lg-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Reportes por Tipo</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="reportTypeChart" width="300" height="200"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Acciones Rápidas</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'reportes:generar_reporte' %}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-2"></i>Nuevo Reporte
+                    </a>
+                    <a href="{% url 'reportes:reportes_programados' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-calendar-event me-2"></i>Reportes Programados
+                    </a>
+                    <a href="{% url 'reportes:visual_dashboard' %}" class="btn btn-outline-info">
+                        <i class="bi bi-graph-up me-2"></i>Dashboard Visual
+                    </a>
+                    <button class="btn btn-outline-success" onclick="exportAll()">
+                        <i class="bi bi-download me-2"></i>Exportar Todo
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .border-left-primary { border-left: 0.25rem solid var(--sena-primary) !important; }
+    .border-left-success { border-left: 0.25rem solid #28a745 !important; }
+    .border-left-info { border-left: 0.25rem solid #17a2b8 !important; }
+    .border-left-warning { border-left: 0.25rem solid #ffc107 !important; }
+
+    .report-card {
+        transition: transform 0.2s ease-in-out;
+        cursor: pointer;
+    }
+    .report-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function downloadReport(reportId) {
+    alert(`Descargando reporte ${reportId}...`);
+    // Implement download functionality
+}
+
+function viewReport(reportId) {
+    alert(`Abriendo vista de reporte ${reportId}...`);
+    // Implement view functionality
+}
+
+function exportAll() {
+    alert('Exportando todos los reportes disponibles...');
+    // Implement export all functionality
+}
+
+// Chart initialization
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('reportTypeChart').getContext('2d');
+
+    // Simple chart simulation (replace with actual Chart.js implementation)
+    ctx.fillStyle = 'var(--sena-primary)';
+    ctx.fillRect(20, 20, 100, 30);
+    ctx.fillText('Estado: 45%', 30, 40);
+
+    ctx.fillStyle = '#28a745';
+    ctx.fillRect(20, 60, 80, 30);
+    ctx.fillText('Mantenimiento: 35%', 30, 80);
+
+    ctx.fillStyle = '#ffc107';
+    ctx.fillRect(20, 100, 60, 30);
+    ctx.fillText('Costos: 20%', 30, 120);
+});
+</script>
+{% endblock %}

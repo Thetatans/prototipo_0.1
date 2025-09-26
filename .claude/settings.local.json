@@ -4,7 +4,8 @@
       "Bash(python manage.py:*)",
       "Bash(pip install:*)",
       "Bash(dir:*)",
-      "Bash(move modern_login.html usuariosmodern_login.html)"
+      "Bash(move modern_login.html usuariosmodern_login.html)",
+      "Bash(timeout:*)"
     ],
     "deny": [],
     "ask": []

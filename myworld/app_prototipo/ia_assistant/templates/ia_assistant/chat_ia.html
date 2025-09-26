@@ -1,0 +1,576 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat IA Assistant - SENA{% endblock %}
+{% block page_title %}Chat con Asistente IA{% endblock %}
+
+{% block content %}
+<div class="row h-100">
+    <div class="col-lg-9">
+        <!-- Chat Container -->
+        <div class="card chat-container">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="ai-avatar me-3">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div>
+                        <h6 class="mb-0">SENA IA Assistant</h6>
+                        <small class="text-success">
+                            <i class="bi bi-circle-fill me-1" style="font-size: 8px;"></i>En línea
+                        </small>
+                    </div>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" onclick="clearChat()"><i class="bi bi-trash me-2"></i>Limpiar Chat</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="exportChat()"><i class="bi bi-download me-2"></i>Exportar</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="saveChat()"><i class="bi bi-bookmark me-2"></i>Guardar</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Chat Messages Area -->
+            <div class="card-body chat-messages" id="chatMessages">
+                <!-- Welcome Message -->
+                <div class="message ai-message">
+                    <div class="message-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <p><strong>¡Hola! Soy tu asistente especializado en maquinaria pesada.</strong></p>
+                            <p>Puedo ayudarte con:</p>
+                            <ul class="mb-2">
+                                <li>Diagnósticos de problemas técnicos</li>
+                                <li>Recomendaciones de mantenimiento</li>
+                                <li>Análisis de rendimiento</li>
+                                <li>Consultas sobre manuales y especificaciones</li>
+                            </ul>
+                            <p class="mb-0">¿En qué puedo asistirte hoy?</p>
+                        </div>
+                        <div class="message-time">
+                            <small class="text-muted">Ahora</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sample conversation -->
+                <div class="message user-message">
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            Mi excavadora CAT 320 está perdiendo presión hidráulica. ¿Qué podría estar causando esto?
+                        </div>
+                        <div class="message-time">
+                            <small class="text-muted">hace 5 minutos</small>
+                        </div>
+                    </div>
+                    <div class="message-avatar">
+                        <i class="bi bi-person"></i>
+                    </div>
+                </div>
+
+                <div class="message ai-message">
+                    <div class="message-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <p><strong>Análisis de pérdida de presión hidráulica en CAT 320:</strong></p>
+
+                            <p><strong>Posibles causas principales:</strong></p>
+                            <ol>
+                                <li><strong>Fugas en mangueras:</strong> Inspecciona todas las mangueras hidráulicas en busca de grietas, cortes o conexiones sueltas.</li>
+                                <li><strong>Filtro hidráulico saturado:</strong> Un filtro obstruido puede reducir significativamente el flujo.</li>
+                                <li><strong>Nivel bajo de fluido:</strong> Verifica el nivel del aceite hidráulico en el tanque.</li>
+                                <li><strong>Bomba hidráulica desgastada:</strong> Pérdida de eficiencia por desgaste interno.</li>
+                            </ol>
+
+                            <p><strong>Pasos de diagnóstico recomendados:</strong></p>
+                            <ol>
+                                <li>Revisar nivel y calidad del aceite hidráulico</li>
+                                <li>Inspección visual de todas las conexiones</li>
+                                <li>Verificar presión con manómetro (presión normal: 250-350 bar)</li>
+                                <li>Revisar filtro de retorno y succión</li>
+                            </ol>
+
+                            <div class="alert alert-warning mt-3 mb-0">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                <strong>Recomendación:</strong> Si la presión está por debajo de 200 bar, detén la operación inmediatamente y contacta al servicio técnico.
+                            </div>
+                        </div>
+                        <div class="message-time">
+                            <small class="text-muted">hace 5 minutos</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typing indicator (hidden by default) -->
+                <div class="message ai-message typing-indicator" id="typingIndicator" style="display: none;">
+                    <div class="message-avatar">
+                        <i class="bi bi-robot"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-bubble">
+                            <div class="typing-dots">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <div class="card-footer">
+                <form id="chatForm" onsubmit="sendMessage(event)">
+                    <div class="input-group">
+                        <button class="btn btn-outline-secondary" type="button" onclick="attachFile()">
+                            <i class="bi bi-paperclip"></i>
+                        </button>
+                        <input type="text" class="form-control" id="messageInput" placeholder="Escribe tu mensaje aquí..." autofocus>
+                        <button class="btn btn-outline-secondary" type="button" onclick="voiceInput()">
+                            <i class="bi bi-mic"></i>
+                        </button>
+                        <button class="btn btn-primary" type="submit">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions mt-2">
+                    <button class="btn btn-sm btn-outline-primary me-2" onclick="quickAction('diagnóstico')">
+                        <i class="bi bi-search me-1"></i>Diagnóstico
+                    </button>
+                    <button class="btn btn-sm btn-outline-success me-2" onclick="quickAction('mantenimiento')">
+                        <i class="bi bi-wrench me-1"></i>Mantenimiento
+                    </button>
+                    <button class="btn btn-sm btn-outline-info me-2" onclick="quickAction('especificaciones')">
+                        <i class="bi bi-info-circle me-1"></i>Especificaciones
+                    </button>
+                    <button class="btn btn-sm btn-outline-warning" onclick="quickAction('emergencia')">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Emergencia
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-3">
+        <!-- Session Info -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Sesión Actual</h6>
+            </div>
+            <div class="card-body">
+                <div class="session-info">
+                    <div class="info-item">
+                        <small class="text-muted">Sesión iniciada:</small>
+                        <div>{{ sesion.fecha_inicio|date:"H:i - d M Y"|default:"Ahora" }}</div>
+                    </div>
+                    <div class="info-item mt-2">
+                        <small class="text-muted">Mensajes:</small>
+                        <div><span id="messageCount">3</span> intercambios</div>
+                    </div>
+                    <div class="info-item mt-2">
+                        <small class="text-muted">Modo:</small>
+                        <div><span class="badge bg-primary">Experto</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick References -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-bookmark me-2"></i>Referencias Rápidas</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <button class="list-group-item list-group-item-action" onclick="insertReference('presión hidráulica normal')">
+                        <i class="bi bi-droplet me-2 text-primary"></i>
+                        <small>Presiones Hidráulicas</small>
+                    </button>
+                    <button class="list-group-item list-group-item-action" onclick="insertReference('códigos de error')">
+                        <i class="bi bi-exclamation-square me-2 text-warning"></i>
+                        <small>Códigos de Error</small>
+                    </button>
+                    <button class="list-group-item list-group-item-action" onclick="insertReference('especificaciones técnicas')">
+                        <i class="bi bi-gear me-2 text-info"></i>
+                        <small>Especificaciones</small>
+                    </button>
+                    <button class="list-group-item list-group-item-action" onclick="insertReference('cronograma de mantenimiento')">
+                        <i class="bi bi-calendar-event me-2 text-success"></i>
+                        <small>Cronogramas</small>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat History -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>Historial Reciente</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% if historial_chat %}
+                        {% for chat in historial_chat %}
+                        <a href="{% url 'ia_assistant:ver_chat' pk=chat.pk %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ chat.titulo|truncatechars:25 }}</h6>
+                                <small>{{ chat.fecha_creacion|timesince }} atrás</small>
+                            </div>
+                            <small>{{ chat.descripcion|truncatechars:50 }}</small>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="list-group-item text-center py-3">
+                            <small class="text-muted">No hay historial de chat disponible</small>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .chat-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1rem;
+        background: #f8f9fa;
+    }
+
+    .message {
+        display: flex;
+        margin-bottom: 1rem;
+        max-width: 80%;
+    }
+
+    .user-message {
+        margin-left: auto;
+        flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    .ai-message .message-avatar {
+        background: linear-gradient(135deg, var(--sena-primary), var(--sena-secondary));
+        color: white;
+        margin-right: 1rem;
+    }
+
+    .user-message .message-avatar {
+        background: #6c757d;
+        color: white;
+        margin-left: 1rem;
+    }
+
+    .message-bubble {
+        background: white;
+        border-radius: 1rem;
+        padding: 1rem;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        position: relative;
+    }
+
+    .user-message .message-bubble {
+        background: var(--sena-primary);
+        color: white;
+    }
+
+    .message-time {
+        text-align: center;
+        margin-top: 0.5rem;
+    }
+
+    .user-message .message-time {
+        text-align: right;
+    }
+
+    .typing-indicator .message-bubble {
+        padding: 1rem 1.5rem;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 0.3rem;
+    }
+
+    .typing-dots span {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #6c757d;
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.5;
+        }
+        30% {
+            transform: translateY(-10px);
+            opacity: 1;
+        }
+    }
+
+    .quick-actions button {
+        margin-bottom: 0.25rem;
+    }
+
+    .ai-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--sena-primary), var(--sena-secondary));
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+
+    .info-item + .info-item {
+        border-top: 1px solid #dee2e6;
+        padding-top: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let messageCount = 3;
+let sessionId = null;
+
+// Initialize chat session
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSession();
+    scrollToBottom();
+});
+
+function initializeSession() {
+    fetch('/api/ia/chat/nueva-sesion/', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            sessionId = data.sesion_id;
+        }
+    })
+    .catch(error => console.error('Error initializing session:', error));
+}
+
+function sendMessage(event) {
+    event.preventDefault();
+
+    const input = document.getElementById('messageInput');
+    const message = input.value.trim();
+
+    if (!message) return;
+
+    // Add user message to chat
+    addMessage(message, 'user');
+    input.value = '';
+
+    // Show typing indicator
+    showTypingIndicator();
+
+    // Send to AI API
+    sendToAI(message);
+
+    messageCount++;
+    updateMessageCount();
+}
+
+function addMessage(content, sender) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}-message`;
+
+    const avatarDiv = document.createElement('div');
+    avatarDiv.className = 'message-avatar';
+    avatarDiv.innerHTML = sender === 'user' ? '<i class="bi bi-person"></i>' : '<i class="bi bi-robot"></i>';
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+
+    const bubbleDiv = document.createElement('div');
+    bubbleDiv.className = 'message-bubble';
+    bubbleDiv.innerHTML = typeof content === 'string' ? content : content.outerHTML;
+
+    const timeDiv = document.createElement('div');
+    timeDiv.className = 'message-time';
+    timeDiv.innerHTML = '<small class="text-muted">Ahora</small>';
+
+    contentDiv.appendChild(bubbleDiv);
+    contentDiv.appendChild(timeDiv);
+
+    if (sender === 'user') {
+        messageDiv.appendChild(contentDiv);
+        messageDiv.appendChild(avatarDiv);
+    } else {
+        messageDiv.appendChild(avatarDiv);
+        messageDiv.appendChild(contentDiv);
+    }
+
+    chatMessages.appendChild(messageDiv);
+    scrollToBottom();
+}
+
+function showTypingIndicator() {
+    document.getElementById('typingIndicator').style.display = 'flex';
+    scrollToBottom();
+}
+
+function hideTypingIndicator() {
+    document.getElementById('typingIndicator').style.display = 'none';
+}
+
+function sendToAI(message) {
+    fetch(`/api/ia/chat/${sessionId}/mensaje/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ mensaje: message })
+    })
+    .then(response => response.json())
+    .then(data => {
+        hideTypingIndicator();
+        if (data.success) {
+            addMessage(data.respuesta, 'ai');
+        } else {
+            addMessage('Lo siento, ocurrió un error al procesar tu mensaje. Por favor intenta de nuevo.', 'ai');
+        }
+    })
+    .catch(error => {
+        hideTypingIndicator();
+        console.error('Error:', error);
+        addMessage('Lo siento, no pude conectar con el servidor. Por favor intenta de nuevo.', 'ai');
+    });
+}
+
+function scrollToBottom() {
+    const chatMessages = document.getElementById('chatMessages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function updateMessageCount() {
+    document.getElementById('messageCount').textContent = messageCount;
+}
+
+function quickAction(action) {
+    const templates = {
+        'diagnóstico': '¿Podrías ayudarme a diagnosticar un problema con mi máquina? Los síntomas son: ',
+        'mantenimiento': '¿Cuál es el cronograma de mantenimiento recomendado para ',
+        'especificaciones': '¿Me puedes proporcionar las especificaciones técnicas de ',
+        'emergencia': 'URGENTE: Necesito ayuda inmediata con un problema en mi máquina. '
+    };
+
+    const input = document.getElementById('messageInput');
+    input.value = templates[action] || '';
+    input.focus();
+}
+
+function insertReference(reference) {
+    const input = document.getElementById('messageInput');
+    input.value = `¿Me puedes proporcionar información sobre ${reference}?`;
+    input.focus();
+}
+
+function voiceInput() {
+    if ('webkitSpeechRecognition' in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'es-ES';
+        recognition.onresult = function(event) {
+            document.getElementById('messageInput').value = event.results[0][0].transcript;
+        };
+        recognition.start();
+    } else {
+        alert('Tu navegador no soporta reconocimiento de voz.');
+    }
+}
+
+function attachFile() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*,.pdf,.doc,.docx';
+    input.onchange = function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            alert(`Archivo seleccionado: ${file.name}. Funcionalidad de carga en desarrollo.`);
+        }
+    };
+    input.click();
+}
+
+function clearChat() {
+    if (confirm('¿Estás seguro de que quieres limpiar el chat?')) {
+        location.reload();
+    }
+}
+
+function saveChat() {
+    alert('Funcionalidad de guardado en desarrollo');
+}
+
+function exportChat() {
+    alert('Funcionalidad de exportación en desarrollo');
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+</script>
+{% endblock %}

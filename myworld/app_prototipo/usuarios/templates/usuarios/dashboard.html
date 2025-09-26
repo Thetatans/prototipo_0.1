@@ -409,7 +409,7 @@
                             <i class="bi bi-gear"></i>
                         </div>
                     </div>
-                    <h2 class="stat-value">{{ total_maquinas|default:0 }}</h2>
+                    <h2 class="stat-value">{{ total_maquinas }}</h2>
                     <p class="stat-label">Total Máquinas</p>
                 </div>
 
@@ -419,8 +419,18 @@
                             <i class="bi bi-check-circle"></i>
                         </div>
                     </div>
-                    <h2 class="stat-value">{{ maquinas_operativas|default:0 }}</h2>
+                    <h2 class="stat-value">{{ maquinas_operativas }}</h2>
                     <p class="stat-label">Máquinas Operativas</p>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: #ffc107;">
+                            <i class="bi bi-wrench"></i>
+                        </div>
+                    </div>
+                    <h2 class="stat-value">{{ maquinas_mantenimiento }}</h2>
+                    <p class="stat-label">En Mantenimiento</p>
                 </div>
 
                 <div class="stat-card">
@@ -429,19 +439,31 @@
                             <i class="bi bi-exclamation-triangle"></i>
                         </div>
                     </div>
-                    <h2 class="stat-value">{{ alertas_activas|default:0 }}</h2>
+                    <h2 class="stat-value">{{ alertas_activas }}</h2>
                     <p class="stat-label">Alertas Activas</p>
+                </div>
+
+                {% if user.is_staff %}
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div class="stat-icon" style="background: #17a2b8;">
+                            <i class="bi bi-person-badge"></i>
+                        </div>
+                    </div>
+                    <h2 class="stat-value">{{ maquinas_asignadas }}</h2>
+                    <p class="stat-label">Máquinas Asignadas</p>
                 </div>
 
                 <div class="stat-card">
                     <div class="stat-header">
                         <div class="stat-icon" style="background: #6f42c1;">
-                            <i class="bi bi-robot"></i>
+                            <i class="bi bi-check2-square"></i>
                         </div>
                     </div>
-                    <h2 class="stat-value">24/7</h2>
-                    <p class="stat-label">IA Assistant</p>
+                    <h2 class="stat-value">{{ maquinas_disponibles }}</h2>
+                    <p class="stat-label">Disponibles</p>
                 </div>
+                {% endif %}
             </div>
 
             <!-- Quick Actions -->
@@ -486,35 +508,70 @@
             <div class="recent-activity">
                 <h5><i class="bi bi-clock-history me-2"></i>Actividad Reciente</h5>
 
-                <div class="activity-item">
-                    <div class="activity-icon" style="background: var(--sena-primary);">
-                        <i class="bi bi-gear"></i>
+                {% if actividades_recientes %}
+                    {% for actividad in actividades_recientes %}
+                    <div class="activity-item">
+                        {% if actividad.tipo_evento == 'mantenimiento' %}
+                        <div class="activity-icon" style="background: #ffc107;">
+                            <i class="bi bi-wrench"></i>
+                        </div>
+                        {% elif actividad.tipo_evento == 'reparacion' %}
+                        <div class="activity-icon" style="background: #dc3545;">
+                            <i class="bi bi-tools"></i>
+                        </div>
+                        {% elif actividad.tipo_evento == 'creacion' %}
+                        <div class="activity-icon" style="background: var(--sena-primary);">
+                            <i class="bi bi-plus-circle"></i>
+                        </div>
+                        {% elif actividad.tipo_evento == 'cambio_estado' %}
+                        <div class="activity-icon" style="background: #17a2b8;">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </div>
+                        {% else %}
+                        <div class="activity-icon" style="background: #6c757d;">
+                            <i class="bi bi-gear"></i>
+                        </div>
+                        {% endif %}
+                        <div class="activity-content">
+                            <h6>{{ actividad.maquina.codigo_inventario }} - {{ actividad.get_tipo_evento_display }}</h6>
+                            <p>{{ actividad.descripcion|truncatewords:10 }}</p>
+                            <small class="text-muted">{{ actividad.fecha_evento|timesince }} -
+                                {% if actividad.usuario %}{{ actividad.usuario.nombre_completo }}{% else %}Sistema{% endif %}
+                            </small>
+                        </div>
                     </div>
-                    <div class="activity-content">
-                        <h6>Sistema inicializado correctamente</h6>
-                        <p>Todos los módulos están funcionando</p>
+                    {% endfor %}
+                {% else %}
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background: var(--sena-primary);">
+                            <i class="bi bi-gear"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h6>Sistema inicializado correctamente</h6>
+                            <p>Todos los módulos están funcionando</p>
+                        </div>
                     </div>
-                </div>
 
-                <div class="activity-item">
-                    <div class="activity-icon" style="background: #17a2b8;">
-                        <i class="bi bi-robot"></i>
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background: #17a2b8;">
+                            <i class="bi bi-robot"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h6>IA Assistant disponible</h6>
+                            <p>Listo para consultas especializadas</p>
+                        </div>
                     </div>
-                    <div class="activity-content">
-                        <h6>IA Assistant disponible</h6>
-                        <p>Listo para consultas especializadas</p>
-                    </div>
-                </div>
 
-                <div class="activity-item">
-                    <div class="activity-icon" style="background: #28a745;">
-                        <i class="bi bi-shield-check"></i>
+                    <div class="activity-item">
+                        <div class="activity-icon" style="background: #28a745;">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div class="activity-content">
+                            <h6>Sistema de seguridad activo</h6>
+                            <p>Acceso controlado y monitorizado</p>
+                        </div>
                     </div>
-                    <div class="activity-content">
-                        <h6>Sistema de seguridad activo</h6>
-                        <p>Acceso controlado y monitorizado</p>
-                    </div>
-                </div>
+                {% endif %}
             </div>
         </div>
     </div>

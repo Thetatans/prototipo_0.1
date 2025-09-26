@@ -1,0 +1,539 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard de Mantenimiento - SENA{% endblock %}
+{% block page_title %}Dashboard de Mantenimiento{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-1">Dashboard de Mantenimiento</h2>
+                    <p class="text-muted">Gestión integral de mantenimiento de maquinaria</p>
+                </div>
+                <div>
+                    <a href="" class="btn btn-primary">
+                        <i class="bi bi-calendar-plus me-2"></i>Programar Mantenimiento
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-center bg-primary text-white">
+                <div class="card-body">
+                    <i class="bi bi-calendar-check fs-1"></i>
+                    <h4 class="mt-2">{{ mantenimientos_hoy }}</h4>
+                    <p class="mb-0">Mantenimientos Hoy</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-warning text-dark">
+                <div class="card-body">
+                    <i class="bi bi-clock fs-1"></i>
+                    <h4 class="mt-2">{{ mantenimientos_pendientes }}</h4>
+                    <p class="mb-0">Pendientes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <i class="bi bi-exclamation-triangle fs-1"></i>
+                    <h4 class="mt-2">{{ mantenimientos_vencidos }}</h4>
+                    <p class="mb-0">Vencidos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <i class="bi bi-check-circle fs-1"></i>
+                    <h4 class="mt-2">{{ cumplimiento_porcentaje }}%</h4>
+                    <p class="mb-0">Cumplimiento</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column -->
+        <div class="col-lg-8">
+            <!-- Maintenance Schedule -->
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-calendar3 me-2"></i>Programación de Mantenimiento
+                    </h5>
+                    <div>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="toggleView('calendar')">
+                            <i class="bi bi-calendar-week"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="toggleView('list')">
+                            <i class="bi bi-list"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Calendar View -->
+                    <div id="calendarView">
+                        <div class="row text-center mb-3">
+                            <div class="col">
+                                <button class="btn btn-link" onclick="previousWeek()">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                                <strong id="weekDisplay">25 - 31 Enero 2024</strong>
+                                <button class="btn btn-link" onclick="nextWeek()">
+                                    <i class="bi bi-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr class="table-light">
+                                        <th>Hora</th>
+                                        <th>Lun 25</th>
+                                        <th>Mar 26</th>
+                                        <th>Mié 27</th>
+                                        <th>Jue 28</th>
+                                        <th>Vie 29</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="table-light"><strong>08:00</strong></td>
+                                        <td></td>
+                                        <td>
+                                            <div class="maintenance-item bg-primary text-white p-2 rounded small">
+                                                <strong>EXC-001</strong><br>
+                                                Mantenimiento Preventivo<br>
+                                                <small>J. Pérez</small>
+                                            </div>
+                                        </td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="table-light"><strong>10:00</strong></td>
+                                        <td>
+                                            <div class="maintenance-item bg-warning text-dark p-2 rounded small">
+                                                <strong>BUL-002</strong><br>
+                                                Revisión Motor<br>
+                                                <small>M. González</small>
+                                            </div>
+                                        </td>
+                                        <td></td>
+                                        <td>
+                                            <div class="maintenance-item bg-info text-white p-2 rounded small">
+                                                <strong>GRU-003</strong><br>
+                                                Inspección Cables<br>
+                                                <small>R. Silva</small>
+                                            </div>
+                                        </td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td class="table-light"><strong>14:00</strong></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td></td>
+                                        <td>
+                                            <div class="maintenance-item bg-success text-white p-2 rounded small">
+                                                <strong>CAR-004</strong><br>
+                                                Cambio Aceite<br>
+                                                <small>A. Rodríguez</small>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="maintenance-item bg-danger text-white p-2 rounded small">
+                                                <strong>EXC-005</strong><br>
+                                                Reparación Urgente<br>
+                                                <small>J. Pérez</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activities -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="bi bi-activity me-2"></i>Actividades Recientes
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-success"></div>
+                            <div class="timeline-content">
+                                <h6>Mantenimiento Completado</h6>
+                                <p class="mb-1">EXC-001 - Cambio de filtros y aceite hidráulico</p>
+                                <small class="text-muted">Hace 2 horas - Juan Carlos Pérez</small>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-warning"></div>
+                            <div class="timeline-content">
+                                <h6>Mantenimiento Programado</h6>
+                                <p class="mb-1">BUL-002 - Inspección sistema de transmisión</p>
+                                <small class="text-muted">Hace 4 horas - Sistema Automático</small>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6>Repuestos Recibidos</h6>
+                                <p class="mb-1">Filtros de aire para CAR-004 y GRU-003</p>
+                                <small class="text-muted">Hace 6 horas - Almacén</small>
+                            </div>
+                        </div>
+
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-danger"></div>
+                            <div class="timeline-content">
+                                <h6>Mantenimiento Vencido</h6>
+                                <p class="mb-1">EXC-005 - Revisión de 500 horas operativas</p>
+                                <small class="text-muted">Ayer - Sistema Automático</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="col-lg-4">
+            <!-- Maintenance Alerts -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-bell me-2"></i>Alertas de Mantenimiento
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>3 Mantenimientos Vencidos</strong>
+                                <div class="small">Requieren atención inmediata</div>
+                            </div>
+                            <i class="bi bi-exclamation-triangle fs-4"></i>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Repuestos Agotándose</strong>
+                                <div class="small">5 componentes en stock mínimo</div>
+                            </div>
+                            <i class="bi bi-box fs-4"></i>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Próximos Vencimientos</strong>
+                                <div class="small">8 mantenimientos esta semana</div>
+                            </div>
+                            <i class="bi bi-calendar-event fs-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Technician Status -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-people me-2"></i>Estado de Técnicos
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-8">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">Juan Carlos Pérez</div>
+                                    <small class="text-muted">Especialista Hidráulico</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-end">
+                            <span class="badge bg-success">Disponible</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-8">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">María González</div>
+                                    <small class="text-muted">Técnico Mecánico</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-end">
+                            <span class="badge bg-warning text-dark">Ocupado</span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-8">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-info text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">Roberto Silva</div>
+                                    <small class="text-muted">Electricista</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-end">
+                            <span class="badge bg-success">Disponible</span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-8">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 35px; height: 35px;">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <div>
+                                    <div class="fw-bold">Ana Rodríguez</div>
+                                    <small class="text-muted">Técnico General</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 text-end">
+                            <span class="badge bg-secondary">Descanso</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Maintenance KPIs -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="bi bi-graph-up me-2"></i>KPIs de Mantenimiento
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small>Cumplimiento Programación</small>
+                            <small class="fw-bold">87%</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: 87%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small>Tiempo Respuesta</small>
+                            <small class="fw-bold">2.3 hrs</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning" role="progressbar" style="width: 65%"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small>Disponibilidad Máquinas</small>
+                            <small class="fw-bold">94%</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-info" role="progressbar" style="width: 94%"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small>Costo vs Presupuesto</small>
+                            <small class="fw-bold">78%</small>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary" role="progressbar" style="width: 78%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0">Acciones Rápidas</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-outline-primary btn-sm" onclick="emergencyMaintenance()">
+                            <i class="bi bi-lightning me-2"></i>Mantenimiento de Emergencia
+                        </button>
+                        <button class="btn btn-outline-success btn-sm" onclick="generateReport()">
+                            <i class="bi bi-file-earmark-bar-graph me-2"></i>Generar Reporte
+                        </button>
+                        <button class="btn btn-outline-info btn-sm" onclick="orderParts()">
+                            <i class="bi bi-cart-plus me-2"></i>Solicitar Repuestos
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="exportSchedule()">
+                            <i class="bi bi-download me-2"></i>Exportar Cronograma
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .maintenance-item {
+        font-size: 0.8rem;
+        line-height: 1.2;
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .maintenance-item:hover {
+        transform: scale(1.05);
+    }
+
+    .timeline {
+        position: relative;
+        padding-left: 30px;
+    }
+
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 15px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #dee2e6;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        left: -22px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid #fff;
+        z-index: 1;
+    }
+
+    .timeline-content {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+    }
+
+    .table td {
+        padding: 0.5rem;
+        vertical-align: top;
+        height: 80px;
+        position: relative;
+    }
+
+    .progress {
+        height: 8px;
+    }
+
+    .card-body .alert {
+        margin-bottom: 0.5rem;
+        padding: 0.75rem;
+    }
+
+    .card-body .alert:last-child {
+        margin-bottom: 0;
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleView(viewType) {
+    // Toggle between calendar and list view
+    if (viewType === 'calendar') {
+        document.getElementById('calendarView').style.display = 'block';
+        // Hide list view if exists
+    } else if (viewType === 'list') {
+        document.getElementById('calendarView').style.display = 'none';
+        // Show list view if exists
+    }
+}
+
+function previousWeek() {
+    // Navigate to previous week
+    document.getElementById('weekDisplay').textContent = '18 - 24 Enero 2024';
+}
+
+function nextWeek() {
+    // Navigate to next week
+    document.getElementById('weekDisplay').textContent = '1 - 7 Febrero 2024';
+}
+
+function emergencyMaintenance() {
+    if (confirm('¿Deseas programar un mantenimiento de emergencia?')) {
+        window.location.href = '';
+    }
+}
+
+function generateReport() {
+    alert('Generando reporte de mantenimiento...');
+}
+
+function orderParts() {
+    alert('Redirigiendo al sistema de solicitud de repuestos...');
+}
+
+function exportSchedule() {
+    alert('Exportando cronograma de mantenimiento...');
+}
+
+// Make maintenance items clickable
+document.querySelectorAll('.maintenance-item').forEach(item => {
+    item.addEventListener('click', function() {
+        const machineCode = this.querySelector('strong').textContent;
+        alert(`Ver detalles de mantenimiento para ${machineCode}`);
+    });
+});
+</script>
+{% endblock %}

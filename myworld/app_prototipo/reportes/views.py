@@ -1,15 +1,66 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from django.http import JsonResponse, HttpResponse
+from django.http import JsonResponse, HttpResponse, Http404
 from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from django.core.paginator import Paginator
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Avg, Sum, Max, Min
 from django.contrib import messages
+from datetime import date, timedelta
+import json
+import uuid
+from .models import Reporte, TipoReporte, MetricasRendimiento
 
 @login_required
 def dashboard_reportes_view(request):
-    return render(request, 'reportes/dashboard_reportes.html', {'title': 'Dashboard Reportes'})
+    """Dashboard principal de reportes con estadísticas reales"""
+    try:
+        from maquinaria.models import Maquina, AlertaMaquina, HistorialMaquina, CategoriaMaquina
+
+        # Estadísticas de reportes
+        total_reportes = Reporte.objects.count()
+        reportes_mes = Reporte.objects.filter(
+            fecha_solicitud__month=timezone.now().month,
+            fecha_solicitud__year=timezone.now().year
+        ).count()
+        tipos_disponibles = TipoReporte.objects.filter(activo=True).count()
+        reportes_programados = Reporte.objects.filter(estado='pendiente').count()
+
+        # Reportes recientes
+        reportes_recientes = Reporte.objects.select_related(
+            'tipo_reporte', 'usuario_solicitante'
+        ).order_by('-fecha_solicitud')[:5]
+
+        # Estadísticas básicas de maquinaria
+        total_maquinas = Maquina.objects.count()
+        total_alertas = AlertaMaquina.objects.count()
+        alertas_activas = AlertaMaquina.objects.filter(estado='activa').count()
+
+        # Categorías para filtros
+        categorias = CategoriaMaquina.objects.filter(activa=True)
+
+        # Centros de formación únicos
+        centros_formacion = Maquina.objects.values_list('centro_formacion', flat=True).distinct().exclude(centro_formacion__isnull=True)
+
+        context = {
+            'title': 'Dashboard Reportes',
+            'total_reportes': total_reportes,
+            'reportes_mes': reportes_mes,
+            'tipos_disponibles': tipos_disponibles,
+            'reportes_programados': reportes_programados,
+            'reportes_recientes': reportes_recientes,
+            'total_maquinas': total_maquinas,
+            'total_alertas': total_alertas,
+            'alertas_activas': alertas_activas,
+            'categorias': categorias,
+            'centros_formacion': centros_formacion,
+        }
+
+    except ImportError:
+        context = {'title': 'Dashboard Reportes'}
+
+    return render(request, 'reportes/dashboard_reportes.html', context)
 
 @login_required
 def visual_dashboard_view(request):
@@ -17,15 +68,296 @@ def visual_dashboard_view(request):
 
 @login_required
 def generar_reporte_view(request):
-    return render(request, 'reportes/generar_reporte.html', {'title': 'Generar Reporte'})
+    """Vista para mostrar formulario de generar reporte (solo GET)"""
+    try:
+        from maquinaria.models import CategoriaMaquina, Maquina
+
+        # Datos para el formulario
+        tipos_reporte = TipoReporte.objects.filter(activo=True)
+        categorias = CategoriaMaquina.objects.filter(activa=True)
+        centros_formacion = Maquina.objects.values_list('centro_formacion', flat=True).distinct().exclude(centro_formacion__isnull=True)
+
+        context = {
+            'title': 'Generar Reporte',
+            'tipos_reporte': tipos_reporte,
+            'categorias': categorias,
+            'centros_formacion': centros_formacion,
+        }
+
+    except ImportError:
+        context = {'title': 'Generar Reporte'}
+
+    return render(request, 'reportes/generar_reporte.html', context)
+
+@login_required
+@require_http_methods(["POST"])
+def crear_reporte_web(request):
+    """Endpoint POST para crear reporte desde formulario web"""
+    try:
+        from usuarios.models import Usuario
+
+        # Obtener datos del formulario
+        tipo_reporte_id = request.POST.get('tipo_reporte')
+        nombre_reporte = request.POST.get('nombre_reporte')
+        descripcion = request.POST.get('descripcion', '')
+        formato = request.POST.get('formato', 'pdf')
+
+        # Validaciones básicas
+        if not tipo_reporte_id:
+            messages.error(request, 'El tipo de reporte es requerido')
+            return redirect('reportes:generar_reporte')
+
+        if not nombre_reporte:
+            messages.error(request, 'El nombre del reporte es requerido')
+            return redirect('reportes:generar_reporte')
+
+        # Obtener filtros
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_fin = request.POST.get('fecha_fin')
+        categoria = request.POST.get('categoria')
+        centro_formacion = request.POST.get('centro_formacion')
+        estado_maquina = request.POST.get('estado_maquina')
+
+        try:
+            tipo_reporte = TipoReporte.objects.get(id=tipo_reporte_id)
+
+            # Determinar usuario solicitante
+            if request.user.is_authenticated:
+                try:
+                    usuario_solicitante = Usuario.objects.get(user=request.user)
+                except Usuario.DoesNotExist:
+                    usuario_solicitante = Usuario.objects.first()
+                    if not usuario_solicitante:
+                        messages.error(request, 'No hay usuarios en el sistema')
+                        return redirect('reportes:generar_reporte')
+            else:
+                usuario_solicitante = Usuario.objects.first()
+                if not usuario_solicitante:
+                    messages.error(request, 'No hay usuarios en el sistema')
+                    return redirect('reportes:generar_reporte')
+
+            # Crear el reporte
+            reporte = Reporte.objects.create(
+                tipo_reporte=tipo_reporte,
+                usuario_solicitante=usuario_solicitante,
+                titulo=nombre_reporte,
+                descripcion=descripcion,
+                formato=formato,
+                fecha_inicio=fecha_inicio if fecha_inicio else None,
+                fecha_fin=fecha_fin if fecha_fin else None,
+                categorias_maquina=[categoria] if categoria else [],
+                centros_formacion=[centro_formacion] if centro_formacion else [],
+                estados_maquina=[estado_maquina] if estado_maquina else [],
+                estado='pendiente'
+            )
+
+            messages.success(request, f'Reporte "{nombre_reporte}" creado exitosamente. ID: {reporte.id}')
+            return redirect('reportes:lista_reportes')
+
+        except TipoReporte.DoesNotExist:
+            messages.error(request, 'Tipo de reporte no válido')
+            return redirect('reportes:generar_reporte')
+
+    except Exception as e:
+        messages.error(request, f'Error al crear reporte: {str(e)}')
+        return redirect('reportes:generar_reporte')
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def crear_reporte_api(request):
+    """Endpoint POST API para crear un nuevo reporte"""
+    try:
+        from usuarios.models import Usuario
+
+        # Verificar Content-Type
+        if request.content_type == 'application/json':
+            import json
+            data = json.loads(request.body)
+        else:
+            data = request.POST
+
+        # Obtener datos del reporte
+        tipo_reporte_id = data.get('tipo_reporte')
+        nombre_reporte = data.get('nombre_reporte')
+        descripcion = data.get('descripcion', '')
+        formato = data.get('formato', 'pdf')
+        usuario_id = data.get('usuario_id')  # Para permitir especificar usuario
+
+        # Validaciones básicas
+        if not tipo_reporte_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'El tipo de reporte es requerido'
+            }, status=400)
+
+        if not nombre_reporte:
+            return JsonResponse({
+                'success': False,
+                'error': 'El nombre del reporte es requerido'
+            }, status=400)
+
+        # Obtener filtros
+        fecha_inicio = data.get('fecha_inicio')
+        fecha_fin = data.get('fecha_fin')
+        categoria = data.get('categoria')
+        centro_formacion = data.get('centro_formacion')
+        estado_maquina = data.get('estado_maquina')
+
+        try:
+            tipo_reporte = TipoReporte.objects.get(id=tipo_reporte_id)
+
+            # Determinar usuario solicitante
+            if usuario_id:
+                try:
+                    usuario_solicitante = Usuario.objects.get(id=usuario_id)
+                except Usuario.DoesNotExist:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'Usuario especificado no encontrado'
+                    }, status=400)
+            elif request.user.is_authenticated:
+                # Si el usuario está autenticado, usar su instancia de Usuario
+                try:
+                    usuario_solicitante = Usuario.objects.get(user=request.user)
+                except Usuario.DoesNotExist:
+                    # Si no existe Usuario para este User, crear uno básico o usar el primer usuario
+                    usuario_solicitante = Usuario.objects.first()
+                    if not usuario_solicitante:
+                        return JsonResponse({
+                            'success': False,
+                            'error': 'No hay usuarios en el sistema'
+                        }, status=400)
+            else:
+                # Para testing sin autenticación, usar el primer usuario disponible
+                usuario_solicitante = Usuario.objects.first()
+                if not usuario_solicitante:
+                    return JsonResponse({
+                        'success': False,
+                        'error': 'No hay usuarios en el sistema para asignar el reporte'
+                    }, status=400)
+
+            # Crear el reporte
+            reporte = Reporte.objects.create(
+                tipo_reporte=tipo_reporte,
+                usuario_solicitante=usuario_solicitante,
+                titulo=nombre_reporte,
+                descripcion=descripcion,
+                formato=formato,
+                fecha_inicio=fecha_inicio if fecha_inicio else None,
+                fecha_fin=fecha_fin if fecha_fin else None,
+                categorias_maquina=[categoria] if categoria else [],
+                centros_formacion=[centro_formacion] if centro_formacion else [],
+                estados_maquina=[estado_maquina] if estado_maquina else [],
+                estado='pendiente'
+            )
+
+            # Devolver JSON (es API)
+            return JsonResponse({
+                'success': True,
+                'message': f'Reporte "{nombre_reporte}" creado exitosamente',
+                'reporte_id': str(reporte.id),
+                'reporte': {
+                    'id': str(reporte.id),
+                    'titulo': reporte.titulo,
+                    'descripcion': reporte.descripcion,
+                    'estado': reporte.estado,
+                    'formato': reporte.formato,
+                    'fecha_solicitud': reporte.fecha_solicitud.isoformat(),
+                    'tipo_reporte': reporte.tipo_reporte.nombre,
+                    'usuario': reporte.usuario_solicitante.nombre_completo if hasattr(reporte.usuario_solicitante, 'nombre_completo') else str(reporte.usuario_solicitante)
+                }
+            }, status=201)
+
+        except TipoReporte.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'Tipo de reporte no válido'
+            }, status=400)
+
+    except json.JSONDecodeError:
+        return JsonResponse({
+            'success': False,
+            'error': 'JSON inválido'
+        }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Error interno del servidor: {str(e)}'
+        }, status=500)
 
 @login_required
 def lista_reportes_view(request):
-    return render(request, 'reportes/lista_reportes.html', {'title': 'Lista de Reportes'})
+    """Vista para listar todos los reportes"""
+    try:
+        # Filtros
+        estado_filtro = request.GET.get('estado', '')
+        tipo_filtro = request.GET.get('tipo', '')
+        busqueda = request.GET.get('busqueda', '')
+
+        # Query base
+        reportes = Reporte.objects.select_related(
+            'tipo_reporte', 'usuario_solicitante'
+        ).order_by('-fecha_solicitud')
+
+        # Aplicar filtros
+        if estado_filtro:
+            reportes = reportes.filter(estado=estado_filtro)
+
+        if tipo_filtro:
+            reportes = reportes.filter(tipo_reporte_id=tipo_filtro)
+
+        if busqueda:
+            reportes = reportes.filter(
+                Q(titulo__icontains=busqueda) |
+                Q(descripcion__icontains=busqueda) |
+                Q(tipo_reporte__nombre__icontains=busqueda)
+            )
+
+        # Paginación
+        paginator = Paginator(reportes, 10)
+        page_number = request.GET.get('page')
+        reportes_page = paginator.get_page(page_number)
+
+        # Datos para filtros
+        tipos_reporte = TipoReporte.objects.filter(activo=True)
+        estados = Reporte.ESTADO_CHOICES
+
+        context = {
+            'title': 'Lista de Reportes',
+            'reportes': reportes_page,
+            'tipos_reporte': tipos_reporte,
+            'estados': estados,
+            'estado_filtro': estado_filtro,
+            'tipo_filtro': tipo_filtro,
+            'busqueda': busqueda,
+        }
+
+    except Exception as e:
+        messages.error(request, f'Error al cargar reportes: {str(e)}')
+        context = {'title': 'Lista de Reportes', 'reportes': []}
+
+    return render(request, 'reportes/lista_reportes.html', context)
 
 @login_required
 def detalle_reporte_view(request, pk):
-    return render(request, 'reportes/detalle_reporte.html', {'title': 'Detalle Reporte'})
+    """Vista para ver detalle de un reporte"""
+    try:
+        reporte = get_object_or_404(Reporte, id=pk)
+
+        # Verificar que el usuario puede ver este reporte
+        if reporte.usuario_solicitante != request.user and not request.user.is_staff:
+            raise Http404("No tienes permiso para ver este reporte")
+
+        context = {
+            'title': f'Reporte: {reporte.titulo}',
+            'reporte': reporte,
+        }
+
+    except Exception as e:
+        messages.error(request, f'Error al cargar reporte: {str(e)}')
+        return redirect('reportes:lista_reportes')
+
+    return render(request, 'reportes/detalle_reporte.html', context)
 
 @login_required
 def descargar_reporte(request, pk):
@@ -89,19 +421,119 @@ def datos_widget_api(request, widget_id):
 
 @login_required
 def grafico_eficiencia_api(request):
-    return JsonResponse({'labels': [], 'data': []})
+    """API para gráfico de eficiencia de máquinas"""
+    try:
+        from maquinaria.models import Maquina, CategoriaMaquina
+
+        # Eficiencia por categoría
+        categorias_eficiencia = CategoriaMaquina.objects.annotate(
+            avg_eficiencia=Avg('maquina__eficiencia')
+        ).filter(avg_eficiencia__isnull=False)
+
+        labels = []
+        data = []
+        colors = []
+
+        for categoria in categorias_eficiencia:
+            labels.append(categoria.nombre)
+            data.append(round(categoria.avg_eficiencia, 1))
+            colors.append(categoria.color)
+
+        return JsonResponse({
+            'labels': labels,
+            'data': data,
+            'colors': colors
+        })
+
+    except ImportError:
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
 
 @login_required
 def grafico_costos_api(request):
-    return JsonResponse({'labels': [], 'data': []})
+    """API para gráfico de costos de mantenimiento"""
+    try:
+        from maquinaria.models import HistorialMaquina
+        from django.db.models import Sum
+
+        # Costos por mes (últimos 6 meses)
+        hoy = date.today()
+        labels = []
+        data = []
+
+        for i in range(6):
+            mes_fecha = hoy - timedelta(days=30*i)
+            mes_nombre = mes_fecha.strftime('%B')
+
+            # Calcular costos del mes
+            costos_mes = HistorialMaquina.objects.filter(
+                fecha_evento__year=mes_fecha.year,
+                fecha_evento__month=mes_fecha.month,
+                costo_asociado__isnull=False
+            ).aggregate(total=Sum('costo_asociado'))['total'] or 0
+
+            labels.insert(0, mes_nombre)
+            data.insert(0, float(costos_mes))
+
+        return JsonResponse({
+            'labels': labels,
+            'data': data
+        })
+
+    except ImportError:
+        return JsonResponse({'labels': [], 'data': []})
 
 @login_required
 def grafico_estados_api(request):
-    return JsonResponse({'labels': [], 'data': []})
+    """API para gráfico de estados de máquinas"""
+    try:
+        from maquinaria.models import Maquina
+
+        estados_data = Maquina.objects.values('estado').annotate(
+            count=Count('id')
+        ).order_by('-count')
+
+        labels = []
+        data = []
+        colors = ['#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6c757d']
+
+        for i, estado in enumerate(estados_data):
+            labels.append(estado['estado'].replace('_', ' ').title())
+            data.append(estado['count'])
+
+        return JsonResponse({
+            'labels': labels,
+            'data': data,
+            'colors': colors[:len(labels)]
+        })
+
+    except ImportError:
+        return JsonResponse({'labels': [], 'data': [], 'colors': []})
 
 @login_required
 def tabla_maquinas_api(request):
-    return JsonResponse({'data': []})
+    """API para tabla de máquinas con datos reales"""
+    try:
+        from maquinaria.models import Maquina
+
+        maquinas = Maquina.objects.select_related('categoria', 'proveedor').all()[:20]
+
+        data = []
+        for maquina in maquinas:
+            data.append({
+                'codigo': maquina.codigo_inventario,
+                'nombre': maquina.nombre,
+                'categoria': maquina.categoria.nombre if maquina.categoria else '-',
+                'estado': maquina.get_estado_display(),
+                'condicion': maquina.get_condicion_display(),
+                'eficiencia': f"{maquina.eficiencia}%",
+                'horas_uso': maquina.horas_uso_total,
+                'ultimo_mantenimiento': maquina.fecha_ultimo_mantenimiento.strftime('%Y-%m-%d') if maquina.fecha_ultimo_mantenimiento else '-',
+            })
+
+        return JsonResponse({'data': data})
+
+    except ImportError:
+        return JsonResponse({'data': []})
 
 @login_required
 def personalizar_dashboard_view(request):

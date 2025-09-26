@@ -1,0 +1,361 @@
+{% extends 'base.html' %}
+
+{% block title %}IA Assistant - SENA{% endblock %}
+{% block page_title %}Asistente de Inteligencia Artificial{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Stats Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Consultas Totales</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_consultas|default:156 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-chat-dots fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Consultas Hoy</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ consultas_hoy|default:23 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-calendar-day fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Predicciones Activas</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ predicciones_activas|default:12 }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-graph-up-arrow fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Precisión Promedio</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ precision_promedio|default:89 }}%</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-bullseye fs-2 text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Access -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="bi bi-lightning-charge me-2"></i>Acceso Rápido al IA
+        </h6>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="input-group mb-3">
+                    <input type="text" class="form-control" id="quickQuery" placeholder="Escribe tu consulta aquí... Ej: ¿Cuál es el mantenimiento recomendado para una excavadora CAT 320?">
+                    <button class="btn btn-primary" type="button" onclick="quickConsult()">
+                        <i class="bi bi-send me-2"></i>Consultar
+                    </button>
+                </div>
+            </div>
+            <div class="col-lg-4">
+                <div class="d-grid gap-2 d-lg-flex justify-content-lg-end">
+                    <a href="{% url 'ia_assistant:chat' %}" class="btn btn-outline-primary">
+                        <i class="bi bi-chat-square-dots me-2"></i>Chat Completo
+                    </a>
+                    <button class="btn btn-outline-secondary" onclick="voiceInput()">
+                        <i class="bi bi-mic"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Content Grid -->
+<div class="row">
+    <!-- AI Features -->
+    <div class="col-lg-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Capacidades del Asistente IA</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="feature-card h-100 p-3 border rounded">
+                            <div class="feature-icon text-primary mb-2">
+                                <i class="bi bi-gear-wide-connected fs-1"></i>
+                            </div>
+                            <h6>Diagnóstico de Maquinaria</h6>
+                            <p class="text-muted small">Analiza síntomas y proporciona diagnósticos precisos para problemas en maquinaria pesada.</p>
+                            <a href="{% url 'ia_assistant:nueva_consulta' %}" class="btn btn-sm btn-outline-primary">Diagnosticar</a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <div class="feature-card h-100 p-3 border rounded">
+                            <div class="feature-icon text-success mb-2">
+                                <i class="bi bi-wrench fs-1"></i>
+                            </div>
+                            <h6>Mantenimiento Predictivo</h6>
+                            <p class="text-muted small">Predice necesidades de mantenimiento basado en datos históricos y patrones de uso.</p>
+                            <a href="{% url 'ia_assistant:generar_predicciones' %}" class="btn btn-sm btn-outline-success">Predecir</a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <div class="feature-card h-100 p-3 border rounded">
+                            <div class="feature-icon text-warning mb-2">
+                                <i class="bi bi-camera fs-1"></i>
+                            </div>
+                            <h6>Análisis de Imágenes</h6>
+                            <p class="text-muted small">Identifica problemas visuales en componentes mediante análisis automático de imágenes.</p>
+                            <button class="btn btn-sm btn-outline-warning" onclick="openImageAnalysis()">Analizar</button>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <div class="feature-card h-100 p-3 border rounded">
+                            <div class="feature-icon text-info mb-2">
+                                <i class="bi bi-book fs-1"></i>
+                            </div>
+                            <h6>Base de Conocimiento</h6>
+                            <p class="text-muted small">Accede a una amplia base de conocimiento técnico especializado en maquinaria.</p>
+                            <a href="{% url 'ia_assistant:base_conocimiento' %}" class="btn btn-sm btn-outline-info">Explorar</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Consultations -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold text-primary">Consultas Recientes</h6>
+                <a href="{% url 'ia_assistant:lista_consultas' %}" class="btn btn-sm btn-outline-primary">Ver Todas</a>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% if consultas_recientes %}
+                        {% for consulta in consultas_recientes %}
+                        <div class="list-group-item d-flex justify-content-between align-items-start">
+                            <div class="ms-2 me-auto">
+                                <div class="fw-bold">{{ consulta.titulo }}</div>
+                                <small class="text-muted">{{ consulta.descripcion_corta }}</small>
+                            </div>
+                            <small class="text-muted">{{ consulta.fecha_creacion|timesince }} atrás</small>
+                            <span class="badge {% if consulta.estado == 'resuelto' %}bg-success{% elif consulta.estado == 'en_proceso' %}bg-warning{% elif consulta.estado == 'pendiente' %}bg-secondary{% else %}bg-primary{% endif %} rounded-pill ms-2">
+                                {{ consulta.get_estado_display|default:consulta.estado|title }}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="list-group-item text-center py-4">
+                            <div class="text-muted">
+                                <i class="bi bi-chat-dots fs-1 mb-3"></i>
+                                <h6>No hay consultas recientes</h6>
+                                <p class="mb-0">Inicia una conversación con el asistente IA</p>
+                                <a href="{% url 'ia_assistant:chat' %}" class="btn btn-primary btn-sm mt-2">
+                                    <i class="bi bi-chat-square-dots me-2"></i>Iniciar Chat
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- AI Status -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Estado del Sistema IA</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="status-indicator bg-success rounded-circle me-3" style="width: 12px; height: 12px;"></div>
+                    <div>
+                        <strong>Sistema Operativo</strong>
+                        <div class="text-muted small">Todos los servicios funcionando</div>
+                    </div>
+                </div>
+
+                <div class="progress mb-3">
+                    <div class="progress-bar bg-success" role="progressbar" style="width: 98%" aria-valuenow="98" aria-valuemin="0" aria-valuemax="100">
+                        98% Disponibilidad
+                    </div>
+                </div>
+
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h6 class="text-primary">1.2s</h6>
+                            <small class="text-muted">Tiempo Respuesta</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h6 class="text-success">99.7%</h6>
+                        <small class="text-muted">Precisión</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Tips -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Consejos de Uso</h6>
+            </div>
+            <div class="card-body">
+                <div class="tips-list">
+                    <div class="tip-item mb-3">
+                        <i class="bi bi-lightbulb text-warning me-2"></i>
+                        <small>Sé específico en tus consultas para obtener mejores resultados</small>
+                    </div>
+                    <div class="tip-item mb-3">
+                        <i class="bi bi-camera text-info me-2"></i>
+                        <small>Puedes subir imágenes para análisis visual detallado</small>
+                    </div>
+                    <div class="tip-item mb-3">
+                        <i class="bi bi-mic text-success me-2"></i>
+                        <small>Usa comandos de voz para consultas más rápidas</small>
+                    </div>
+                    <div class="tip-item">
+                        <i class="bi bi-bookmark text-primary me-2"></i>
+                        <small>Guarda consultas frecuentes como favoritas</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Learning Resources -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-primary">Recursos de Aprendizaje</h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="bi bi-play-circle text-primary me-2"></i>Tutorial: Uso Básico del IA
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="bi bi-book text-info me-2"></i>Guía de Consultas Efectivas
+                    </a>
+                    <a href="#" class="list-group-item list-group-item-action">
+                        <i class="bi bi-question-circle text-warning me-2"></i>FAQ del Sistema
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .border-left-primary { border-left: 0.25rem solid var(--sena-primary) !important; }
+    .border-left-success { border-left: 0.25rem solid #28a745 !important; }
+    .border-left-info { border-left: 0.25rem solid #17a2b8 !important; }
+    .border-left-warning { border-left: 0.25rem solid #ffc107 !important; }
+
+    .feature-card {
+        transition: transform 0.2s ease-in-out;
+    }
+    .feature-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .status-indicator {
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { opacity: 1; }
+        50% { opacity: 0.5; }
+        100% { opacity: 1; }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function quickConsult() {
+    const query = document.getElementById('quickQuery').value;
+    if (query.trim()) {
+        // Simulate AI consultation
+        alert(`Procesando consulta: "${query}"\n\nEsta funcionalidad redirigirá al chat completo.`);
+        window.location.href = '{% url "ia_assistant:chat" %}';
+    } else {
+        alert('Por favor, escribe tu consulta.');
+    }
+}
+
+function voiceInput() {
+    if ('webkitSpeechRecognition' in window) {
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = 'es-ES';
+        recognition.onresult = function(event) {
+            document.getElementById('quickQuery').value = event.results[0][0].transcript;
+        };
+        recognition.start();
+    } else {
+        alert('Tu navegador no soporta reconocimiento de voz.');
+    }
+}
+
+function openImageAnalysis() {
+    alert('Funcionalidad de análisis de imágenes en desarrollo');
+}
+
+// Auto-refresh stats every 30 seconds
+setInterval(() => {
+    fetch('/api/ia/estadisticas/')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                console.log('Stats updated:', data);
+                // Update UI with new stats
+            }
+        })
+        .catch(error => console.log('Stats update failed:', error));
+}, 30000);
+</script>
+{% endblock %}

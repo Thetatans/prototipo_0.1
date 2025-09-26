@@ -621,9 +621,9 @@
             <label class="filter-label">🏭 Centro de Formación</label>
             <select class="filter-control" id="centerFilter">
                 <option value="all">Todos los centros</option>
-                <option value="industrial">Centro Tecnológico Industrial</option>
-                <option value="automatizacion">Centro de Automatización</option>
-                <option value="manufactura">Centro de Manufactura</option>
+                {% for centro in centros_formacion %}
+                    <option value="{{ centro.id }}">{{ centro.nombre }}</option>
+                {% endfor %}
             </select>
         </div>
         
@@ -631,10 +631,9 @@
             <label class="filter-label">🔧 Categoría</label>
             <select class="filter-control" id="categoryFilter">
                 <option value="all">Todas las categorías</option>
-                <option value="cnc">Tornos CNC</option>
-                <option value="fresadoras">Fresadoras</option>
-                <option value="soldadura">Soldadura</option>
-                <option value="neumatica">Neumática</option>
+                {% for categoria in categorias %}
+                    <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+                {% endfor %}
             </select>
         </div>
         
@@ -653,7 +652,7 @@
         <div class="kpi-icon">
             <i class="bi bi-graph-up-arrow"></i>
         </div>
-        <div class="kpi-value" id="efficiencyValue">87.5%</div>
+        <div class="kpi-value" id="efficiencyValue">{{ eficiencia_global|default:"0.0" }}%</div>
         <div class="kpi-label">Eficiencia Global</div>
         <div class="kpi-trend trend-up">
             <i class="bi bi-arrow-up"></i>
@@ -665,7 +664,7 @@
         <div class="kpi-icon">
             <i class="bi bi-currency-dollar"></i>
         </div>
-        <div class="kpi-value" id="costValue">$2.4M</div>
+        <div class="kpi-value" id="costValue">${{ costo_mantenimiento|default:"0.0" }}M</div>
         <div class="kpi-label">Costo de Mantenimiento</div>
         <div class="kpi-trend trend-down">
             <i class="bi bi-arrow-down"></i>
@@ -677,7 +676,7 @@
         <div class="kpi-icon">
             <i class="bi bi-clock"></i>
         </div>
-        <div class="kpi-value" id="downtimeValue">2.1h</div>
+        <div class="kpi-value" id="downtimeValue">{{ tiempo_fuera_promedio|default:"0.0" }}h</div>
         <div class="kpi-label">Tiempo Fuera Promedio</div>
         <div class="kpi-trend trend-stable">
             <i class="bi bi-dash"></i>
@@ -689,7 +688,7 @@
         <div class="kpi-icon">
             <i class="bi bi-emoji-smile"></i>
         </div>
-        <div class="kpi-value" id="satisfactionValue">94.2%</div>
+        <div class="kpi-value" id="satisfactionValue">{{ satisfaccion_usuario|default:"0.0" }}%</div>
         <div class="kpi-label">Satisfacción Usuario</div>
         <div class="kpi-trend trend-up">
             <i class="bi bi-arrow-up"></i>
@@ -833,71 +832,39 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <td>
-                                <span class="status-indicator status-success"></span>
-                                Operativa
-                            </td>
-                            <td><strong>TOR-001</strong></td>
-                            <td>Torno CNC Siemens 840D</td>
-                            <td>92.5%</td>
-                            <td>156h</td>
-                            <td>$245,000</td>
-                            <td>Hace 5 días</td>
-                            <td><canvas class="sparkline" data-sparkline="85,90,88,92,89,92,95"></canvas></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span class="status-indicator status-warning"></span>
-                                Mantenimiento
-                            </td>
-                            <td><strong>FRE-002</strong></td>
-                            <td>Fresadora Universal Huron</td>
-                            <td>78.2%</td>
-                            <td>98h</td>
-                            <td>$189,500</td>
-                            <td>En proceso</td>
-                            <td><canvas class="sparkline" data-sparkline="88,85,82,78,75,78,82"></canvas></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span class="status-indicator status-success"></span>
-                                Operativa
-                            </td>
-                            <td><strong>SOL-003</strong></td>
-                            <td>Equipo Soldadura MIG/MAG</td>
-                            <td>89.7%</td>
-                            <td>142h</td>
-                            <td>$156,800</td>
-                            <td>Hace 2 días</td>
-                            <td><canvas class="sparkline" data-sparkline="92,89,91,88,89,90,92"></canvas></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span class="status-indicator status-success"></span>
-                                Disponible
-                            </td>
-                            <td><strong>TAL-004</strong></td>
-                            <td>Taladro de Banco</td>
-                            <td>95.1%</td>
-                            <td>67h</td>
-                            <td>$78,200</td>
-                            <td>Hace 12 días</td>
-                            <td><canvas class="sparkline" data-sparkline="93,95,94,96,95,94,95"></canvas></td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <span class="status-indicator status-danger"></span>
-                                Reparación
-                            </td>
-                            <td><strong>COM-005</strong></td>
-                            <td>Compresor Industrial</td>
-                            <td>45.8%</td>
-                            <td>23h</td>
-                            <td>$298,700</td>
-                            <td>Hace 15 días</td>
-                            <td><canvas class="sparkline" data-sparkline="78,65,58,45,38,42,46"></canvas></td>
-                        </tr>
+                        {% if maquinas_rendimiento %}
+                            {% for maquina in maquinas_rendimiento %}
+                            <tr>
+                                <td>
+                                    <span class="status-indicator {% if maquina.estado == 'operativa' %}status-success{% elif maquina.estado == 'mantenimiento' %}status-warning{% elif maquina.estado == 'reparacion' %}status-danger{% else %}status-success{% endif %}"></span>
+                                    {{ maquina.get_estado_display }}
+                                </td>
+                                <td><strong>{{ maquina.codigo_inventario }}</strong></td>
+                                <td>{{ maquina.nombre }}</td>
+                                <td>{{ maquina.eficiencia|default:"N/A" }}%</td>
+                                <td>{{ maquina.horas_uso_total|default:"0" }}h</td>
+                                <td>${{ maquina.valor_adquisicion|default:"N/A"|floatformat:0 }}</td>
+                                <td>
+                                    {% if maquina.ultimo_mantenimiento %}
+                                        {{ maquina.ultimo_mantenimiento|timesince }} atrás
+                                    {% else %}
+                                        No registrado
+                                    {% endif %}
+                                </td>
+                                <td><canvas class="sparkline" data-sparkline="{{ maquina.sparkline_data|default:'50,55,52,58,60,62,65' }}"></canvas></td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="bi bi-gear fs-1 mb-3"></i>
+                                        <h5>No hay datos de rendimiento disponibles</h5>
+                                        <p>Los datos se mostrarán una vez que las máquinas estén en operación</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endif %}
                     </tbody>
                 </table>
             </div>

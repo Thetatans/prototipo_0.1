@@ -8,7 +8,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #39A900 0%, #2E8000 100%);
             min-height: 100vh;
             padding: 2rem 0;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -24,7 +24,7 @@
         }
 
         .register-header {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #39A900, #2E8000);
             color: white;
             padding: 2rem;
             text-align: center;
@@ -35,29 +35,84 @@
         }
 
         .form-floating {
-            margin-bottom: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-control {
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: #f7fafc;
+        }
+
+        .form-control:focus {
+            border-color: #39A900;
+            box-shadow: 0 0 0 0.2rem rgba(57, 169, 0, 0.25);
+            background: white;
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #39A900, #2E8000);
             border: none;
             border-radius: 12px;
-            padding: 0.75rem 2rem;
+            padding: 1rem 2rem;
             font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(57, 169, 0, 0.3);
         }
 
         .alert {
             border-radius: 12px;
             margin-bottom: 1rem;
+            border: none;
+            padding: 1rem 1.25rem;
+        }
+
+        .alert-success {
+            background: rgba(72, 187, 120, 0.1);
+            color: #2f855a;
+            border-left: 4px solid #48bb78;
+        }
+
+        .alert-danger {
+            background: rgba(245, 101, 101, 0.1);
+            color: #c53030;
+            border-left: 4px solid #f56565;
+        }
+
+        .back-link {
+            color: #39A900;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: #2E8000;
+            text-decoration: underline;
+        }
+
+        .sena-logo img {
+            filter: brightness(0) invert(1);
         }
     </style>
 </head>
 <body>
     <div class="register-container">
         <div class="register-header">
-            <i class="bi bi-person-plus fs-1 mb-3"></i>
-            <h1>Solicitar Acceso</h1>
-            <p class="mb-0">Complete el formulario para solicitar acceso al sistema</p>
+            <div class="sena-logo mb-3">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjYwIiB2aWV3Qm94PSIwIDAgMTAwIDYwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNNSA1SDk1VjU1SDVWNVoiIGZpbGw9IiNGRkZGRkYiIHN0cm9rZT0iI0ZGRkZGRiIgc3Ryb2tlLXdpZHRoPSIyIi8+Cjx0ZXh0IHg9IjUwIiB5PSIzNSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzM5QTkwMCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE2IiBmb250LXdlaWdodD0iYm9sZCI+U0VOQTwvdGV4dD4KPC9zdmc+Cg=="
+                     alt="Logo SENA" style="width: 100px; height: 60px;">
+            </div>
+            <h1>Solicitar Acceso - SENA</h1>
+            <p class="mb-0">Complete el formulario para solicitar acceso al sistema de maquinaria</p>
         </div>
 
         <div class="register-body">
@@ -79,7 +134,7 @@
             </form>
 
             <div class="text-center mt-3">
-                <a href="{% url 'usuarios:login' %}" class="text-decoration-none">
+                <a href="{% url 'usuarios:login' %}" class="back-link">
                     <i class="bi bi-arrow-left me-2"></i>Volver al inicio de sesión
                 </a>
             </div>

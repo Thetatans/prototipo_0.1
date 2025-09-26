@@ -11,12 +11,62 @@ import uuid
 
 @login_required
 def dashboard_ia_view(request):
+    """Dashboard de IA Assistant con estadísticas simuladas realistas"""
+    from datetime import datetime, timedelta
+    import random
+
+    # Generar estadísticas simuladas pero realistas
+    base_consultas = 156
+    consultas_hoy = random.randint(8, 25)
+    predicciones_activas = random.randint(12, 30)
+    precision_promedio = round(random.uniform(0.85, 0.95), 2)
+
+    # Estadísticas adicionales
+    consultas_mes = random.randint(80, 150)
+    tiempo_respuesta = round(random.uniform(1.2, 3.5), 1)
+    satisfaccion = round(random.uniform(4.0, 4.8), 1)
+
+    # Consultas recientes simuladas
+    consultas_recientes = [
+        {
+            'id': i,
+            'pregunta': [
+                '¿Cuál es el mantenimiento recomendado para excavadora CAT-320?',
+                'Diagnóstico de falla en sistema hidráulico',
+                'Predicción de vida útil del motor diesel',
+                'Optimización de consumo de combustible',
+                'Análisis de vibraciones anómalas'
+            ][i % 5],
+            'tipo': ['mantenimiento', 'diagnostico', 'prediccion', 'optimizacion', 'analisis'][i % 5],
+            'estado': 'completada',
+            'confianza': round(random.uniform(0.80, 0.95), 2),
+            'timestamp': datetime.now() - timedelta(hours=random.randint(1, 24))
+        } for i in range(5)
+    ]
+
+    # Predicciones activas simuladas
+    predicciones_list = [
+        {
+            'id': i,
+            'maquina': ['EXC-001', 'BUL-002', 'GRU-003', 'CAR-004'][i % 4],
+            'tipo': 'Falla predictiva',
+            'probabilidad': round(random.uniform(0.15, 0.85), 2),
+            'dias_estimados': random.randint(7, 45),
+            'criticidad': ['baja', 'media', 'alta'][i % 3]
+        } for i in range(6)
+    ]
+
     context = {
         'title': 'Dashboard IA Assistant',
-        'total_consultas': 0,
-        'consultas_hoy': 0,
-        'predicciones_activas': 0,
-        'precision_promedio': 0
+        'total_consultas': base_consultas,
+        'consultas_hoy': consultas_hoy,
+        'consultas_mes': consultas_mes,
+        'predicciones_activas': predicciones_activas,
+        'precision_promedio': precision_promedio,
+        'tiempo_respuesta': tiempo_respuesta,
+        'satisfaccion': satisfaccion,
+        'consultas_recientes': consultas_recientes,
+        'predicciones_list': predicciones_list,
     }
     return render(request, 'ia_assistant/dashboard_ia.html', context)
 

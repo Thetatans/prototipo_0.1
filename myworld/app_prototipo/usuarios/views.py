@@ -78,37 +78,55 @@ def logout_view(request):
 @login_required
 def dashboard_view(request):
     """Dashboard principal después del login"""
-    # Estadísticas básicas
+    # Estadísticas básicas de maquinaria
     total_maquinas = 0
     maquinas_operativas = 0
+    maquinas_mantenimiento = 0
     alertas_activas = 0
+    maquinas_disponibles = 0
+    maquinas_fuera_servicio = 0
 
     try:
         from maquinaria.models import Maquina, AlertaMaquina
+
+        # Estadísticas principales
         total_maquinas = Maquina.objects.count()
         maquinas_operativas = Maquina.objects.filter(estado='operativa').count()
+        maquinas_mantenimiento = Maquina.objects.filter(estado='mantenimiento').count()
+        maquinas_disponibles = Maquina.objects.filter(estado='disponible').count()
+        maquinas_fuera_servicio = Maquina.objects.filter(estado='fuera_servicio').count()
         alertas_activas = AlertaMaquina.objects.filter(estado='activa').count()
+
     except ImportError:
         pass
 
-    # Notificaciones recientes
-    notificaciones_recientes = []
+    # Actividad reciente del sistema
+    actividades_recientes = []
     try:
-        from components.models import Notificacion
-        usuario = Usuario.objects.get(numero_documento=request.user.username)
-        notificaciones_recientes = Notificacion.objects.filter(
-            usuario=usuario,
-            estado__in=['pendiente', 'enviada']
-        ).order_by('-fecha_creacion')[:5]
-    except (ImportError, Usuario.DoesNotExist):
+        from maquinaria.models import HistorialMaquina
+        actividades_recientes = HistorialMaquina.objects.select_related('maquina', 'usuario').order_by('-fecha_evento')[:5]
+    except ImportError:
         pass
+
+    # Estadísticas adicionales
+    try:
+        usuario_actual = Usuario.objects.get(numero_documento=request.user.username)
+        maquinas_asignadas = Maquina.objects.filter(responsable=usuario_actual).count()
+    except Usuario.DoesNotExist:
+        usuario_actual = None
+        maquinas_asignadas = 0
 
     context = {
         'title': 'Dashboard - SENA',
         'total_maquinas': total_maquinas,
         'maquinas_operativas': maquinas_operativas,
+        'maquinas_mantenimiento': maquinas_mantenimiento,
+        'maquinas_disponibles': maquinas_disponibles,
+        'maquinas_fuera_servicio': maquinas_fuera_servicio,
         'alertas_activas': alertas_activas,
-        'notificaciones_recientes': notificaciones_recientes,
+        'actividades_recientes': actividades_recientes,
+        'maquinas_asignadas': maquinas_asignadas,
+        'usuario_actual': usuario_actual,
     }
 
     return render(request, 'usuarios/dashboard.html', context)

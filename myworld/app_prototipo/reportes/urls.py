@@ -10,6 +10,8 @@ urlpatterns = [
 
     # Generación de reportes
     path('generar/', views.generar_reporte_view, name='generar_reporte'),
+    path('crear/', views.crear_reporte_web, name='crear_reporte_web'),
+    path('api/crear/', views.crear_reporte_api, name='crear_reporte_api'),
     path('lista/', views.lista_reportes_view, name='lista_reportes'),
     path('detalle/<uuid:pk>/', views.detalle_reporte_view, name='detalle_reporte'),
     path('descargar/<uuid:pk>/', views.descargar_reporte, name='descargar_reporte'),
