@@ -50,7 +50,7 @@ def crear_categorias():
             defaults={'descripcion': cat_data['descripcion']}
         )
         if created:
-            print(f"✓ Categoría creada: {categoria.nombre}")
+            print(f"+ Categoría creada: {categoria.nombre}")
         else:
             print(f"- Categoría existente: {categoria.nombre}")
 
@@ -59,9 +59,10 @@ def crear_proveedores():
     proveedores = [
         {
             'nombre': 'Caterpillar Colombia S.A.',
-            'contacto_principal': 'Juan Pérez',
-            'telefono': '+57 1 234-5678',
-            'email': 'ventas@caterpillar.com.co',
+            'nit': '800123456-1',
+            'contacto_nombre': 'Juan Pérez',
+            'contacto_telefono': '+57 1 234-5678',
+            'contacto_email': 'ventas@caterpillar.com.co',
             'direccion': 'Calle 100 #25-34',
             'ciudad': 'Bogotá',
             'pais': 'Colombia',
@@ -69,9 +70,10 @@ def crear_proveedores():
         },
         {
             'nombre': 'Komatsu Andina S.A.',
-            'contacto_principal': 'María González',
-            'telefono': '+57 1 345-6789',
-            'email': 'info@komatsu.com.co',
+            'nit': '800234567-2',
+            'contacto_nombre': 'María González',
+            'contacto_telefono': '+57 1 345-6789',
+            'contacto_email': 'info@komatsu.com.co',
             'direccion': 'Carrera 15 #93-47',
             'ciudad': 'Bogotá',
             'pais': 'Colombia',
@@ -79,9 +81,10 @@ def crear_proveedores():
         },
         {
             'nombre': 'John Deere Colombia',
-            'contacto_principal': 'Carlos Rodríguez',
-            'telefono': '+57 1 456-7890',
-            'email': 'contacto@johndeere.com.co',
+            'nit': '800345678-3',
+            'contacto_nombre': 'Carlos Rodríguez',
+            'contacto_telefono': '+57 1 456-7890',
+            'contacto_email': 'contacto@johndeere.com.co',
             'direccion': 'Avenida 68 #40-35',
             'ciudad': 'Bogotá',
             'pais': 'Colombia',
@@ -89,9 +92,10 @@ def crear_proveedores():
         },
         {
             'nombre': 'Case Construction Equipment',
-            'contacto_principal': 'Ana Martínez',
-            'telefono': '+57 1 567-8901',
-            'email': 'ventas@case.com.co',
+            'nit': '800456789-4',
+            'contacto_nombre': 'Ana Martínez',
+            'contacto_telefono': '+57 1 567-8901',
+            'contacto_email': 'ventas@case.com.co',
             'direccion': 'Zona Industrial Norte',
             'ciudad': 'Medellín',
             'pais': 'Colombia',
@@ -99,9 +103,10 @@ def crear_proveedores():
         },
         {
             'nombre': 'Volvo Construction Equipment',
-            'contacto_principal': 'Roberto Silva',
-            'telefono': '+57 1 678-9012',
-            'email': 'info@volvo.com.co',
+            'nit': '800567890-5',
+            'contacto_nombre': 'Roberto Silva',
+            'contacto_telefono': '+57 1 678-9012',
+            'contacto_email': 'info@volvo.com.co',
             'direccion': 'Calle 72 #10-34',
             'ciudad': 'Bogotá',
             'pais': 'Colombia',
@@ -116,7 +121,7 @@ def crear_proveedores():
             defaults=prov_data
         )
         if created:
-            print(f"✓ Proveedor creado: {proveedor.nombre}")
+            print(f"+ Proveedor creado: {proveedor.nombre}")
         else:
             print(f"- Proveedor existente: {proveedor.nombre}")
 
@@ -176,7 +181,7 @@ def crear_tipos_usuario():
             defaults=tipo_data
         )
         if created:
-            print(f"✓ Tipo de usuario creado: {tipo.nombre}")
+            print(f"+ Tipo de usuario creado: {tipo.nombre}")
         else:
             print(f"- Tipo de usuario existente: {tipo.nombre}")
 

@@ -5,7 +5,8 @@
       "Bash(pip install:*)",
       "Bash(dir:*)",
       "Bash(move modern_login.html usuariosmodern_login.html)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
