@@ -76,10 +76,11 @@
                                 <label for="maquina" class="form-label">Máquina Afectada *</label>
                                 <select class="form-select" id="maquina" name="maquina" required onchange="loadMachineInfo()">
                                     <option value="">Seleccionar máquina...</option>
-                                    <option value="1">EXC-001 - Excavadora Caterpillar 320</option>
-                                    <option value="2">BUL-002 - Bulldozer Komatsu D65</option>
-                                    <option value="3">GRU-003 - Grúa Liebherr LTM 1095</option>
-                                    <option value="4">CAR-004 - Cargadora Frontal CAT 950</option>
+                                    {% for maquina in maquinas %}
+                                        <option value="{{ maquina.id }}" data-codigo="{{ maquina.codigo_inventario }}" data-ubicacion="{{ maquina.ubicacion }}" data-estado="{{ maquina.estado }}">
+                                            {{ maquina.codigo_inventario }} - {{ maquina.nombre }} ({{ maquina.marca }} {{ maquina.modelo }})
+                                        </option>
+                                    {% endfor %}
                                 </select>
                             </div>
 
@@ -229,10 +230,11 @@
                             <label for="tecnico_asignado" class="form-label">Técnico Asignado</label>
                             <select class="form-select" id="tecnico_asignado" name="tecnico_asignado">
                                 <option value="">Asignar automáticamente</option>
-                                <option value="1">Juan Carlos Pérez - Especialista Hidráulico</option>
-                                <option value="2">María González - Técnico Mecánico</option>
-                                <option value="3">Roberto Silva - Electricista</option>
-                                <option value="4">Ana Rodríguez - Técnico General</option>
+                                {% for tecnico in usuarios_tecnicos %}
+                                    <option value="{{ tecnico.id }}">{{ tecnico.nombre_completo }} - {{ tecnico.cargo|default:"Técnico" }}</option>
+                                {% empty %}
+                                    <option value="" disabled>No hay técnicos disponibles</option>
+                                {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-6">
@@ -419,35 +421,37 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadMachineInfo() {
-    const machineId = document.getElementById('maquina').value;
+    const maquinaSelect = document.getElementById('maquina');
+    const selectedOption = maquinaSelect.options[maquinaSelect.selectedIndex];
     const machineInfo = document.getElementById('machineInfo');
 
-    if (machineId) {
-        // Simulate loading machine data
-        const machines = {
-            '1': {
-                name: 'Excavadora Caterpillar 320',
-                location: 'Sede Principal - Taller A',
-                status: 'Operativa',
-                statusClass: 'bg-success',
-                image: '/static/images/machine-placeholder.png'
-            },
-            '2': {
-                name: 'Bulldozer Komatsu D65',
-                location: 'Sede Norte - Campo B',
-                status: 'Mantenimiento',
-                statusClass: 'bg-warning text-dark',
-                image: '/static/images/machine-placeholder.png'
-            }
+    if (selectedOption && selectedOption.value) {
+        // Obtener datos reales del option seleccionado
+        const codigo = selectedOption.getAttribute('data-codigo');
+        const ubicacion = selectedOption.getAttribute('data-ubicacion');
+        const estado = selectedOption.getAttribute('data-estado');
+        const nombre = selectedOption.textContent;
+
+        // Mapear estados a clases CSS
+        const statusMapping = {
+            'disponible': { class: 'bg-success', text: 'Disponible' },
+            'operativa': { class: 'bg-primary', text: 'Operativa' },
+            'mantenimiento': { class: 'bg-warning text-dark', text: 'Mantenimiento' },
+            'reparacion': { class: 'bg-danger', text: 'Reparación' },
+            'fuera_servicio': { class: 'bg-secondary', text: 'Fuera de Servicio' },
+            'retirada': { class: 'bg-dark', text: 'Retirada' }
         };
 
-        const machine = machines[machineId] || machines['1'];
+        const statusInfo = statusMapping[estado] || { class: 'bg-secondary', text: 'Sin Estado' };
 
-        document.getElementById('machineName').textContent = machine.name;
-        document.getElementById('machineLocation').textContent = machine.location;
-        document.getElementById('machineStatus').textContent = machine.status;
-        document.getElementById('machineStatus').className = 'badge ' + machine.statusClass;
-        document.getElementById('machineImage').src = machine.image;
+        // Actualizar información en el DOM
+        document.getElementById('machineName').textContent = nombre;
+        document.getElementById('machineLocation').textContent = ubicacion || 'Ubicación no especificada';
+        document.getElementById('machineStatus').textContent = statusInfo.text;
+        document.getElementById('machineStatus').className = 'badge ' + statusInfo.class;
+
+        // Usar placeholder por ahora
+        document.getElementById('machineImage').src = '/static/images/machine-placeholder.png';
 
         machineInfo.classList.remove('d-none');
     } else {
@@ -568,21 +572,28 @@ function saveDraft() {
     alert('Borrador guardado exitosamente');
 }
 
-// Form submission
+// Form submission - submit real form
 document.getElementById('alertForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
     const submitBtn = document.getElementById('submitBtn');
     const originalText = submitBtn.innerHTML;
 
+    // Validar campos requeridos
+    const maquina = document.getElementById('maquina').value;
+    const titulo = document.getElementById('titulo').value;
+    const descripcion = document.getElementById('descripcion').value;
+    const tipoAlerta = document.querySelector('input[name="tipo_alerta"]:checked');
+
+    if (!maquina || !titulo || !descripcion || !tipoAlerta) {
+        alert('Por favor complete todos los campos requeridos (Máquina, Tipo de Alerta, Título y Descripción)');
+        return false;
+    }
+
+    // Mostrar loading
     submitBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>Creando Alerta...';
     submitBtn.disabled = true;
 
-    // Simulate form submission
-    setTimeout(() => {
-        alert('¡Alerta creada exitosamente!');
-        window.location.href = '{% url "maquinaria:alertas" %}';
-    }, 2000);
+    // Permitir que el formulario se envíe normalmente
+    return true;
 });
 </script>
 {% endblock %}

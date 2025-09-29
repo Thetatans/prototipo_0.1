@@ -32,7 +32,8 @@ urlpatterns = [
 
     # Mantenimiento
     path('mantenimiento/', views.mantenimiento_dashboard_view, name='mantenimiento_dashboard'),
-    path('mantenimiento/programar/<int:pk>/', views.programar_mantenimiento_view, name='programar_mantenimiento'),
+    path('mantenimiento/programar/', views.programar_mantenimiento_view, name='programar_mantenimiento'),
+    path('mantenimiento/programar/<int:pk>/', views.programar_mantenimiento_view, name='programar_mantenimiento_maquina'),
 
     # Importar/Exportar
     path('importar/', views.importar_maquinas_view, name='importar_maquinas'),

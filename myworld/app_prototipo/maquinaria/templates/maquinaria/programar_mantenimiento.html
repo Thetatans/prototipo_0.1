@@ -30,7 +30,7 @@
                         <label class="form-label">Tipo de Mantenimiento *</label>
                         <div class="row">
                             <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="tipo_mantenimiento" id="preventivo" value="preventivo" required>
+                                <input type="radio" class="btn-check" name="tipo" id="preventivo" value="preventivo" required>
                                 <label class="btn btn-outline-success w-100 p-3" for="preventivo">
                                     <i class="bi bi-shield-check display-6"></i>
                                     <div class="mt-2">
@@ -40,7 +40,7 @@
                                 </label>
                             </div>
                             <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="tipo_mantenimiento" id="correctivo" value="correctivo">
+                                <input type="radio" class="btn-check" name="tipo" id="correctivo" value="correctivo">
                                 <label class="btn btn-outline-warning w-100 p-3" for="correctivo">
                                     <i class="bi bi-wrench display-6"></i>
                                     <div class="mt-2">
@@ -50,7 +50,7 @@
                                 </label>
                             </div>
                             <div class="col-md-4">
-                                <input type="radio" class="btn-check" name="tipo_mantenimiento" id="emergencia" value="emergencia">
+                                <input type="radio" class="btn-check" name="tipo" id="emergencia" value="emergencia">
                                 <label class="btn btn-outline-danger w-100 p-3" for="emergencia">
                                     <i class="bi bi-lightning display-6"></i>
                                     <div class="mt-2">
@@ -71,10 +71,15 @@
                                 <label for="maquina" class="form-label">Máquina *</label>
                                 <select class="form-select" id="maquina" name="maquina" required onchange="loadMachineInfo()">
                                     <option value="">Seleccionar máquina...</option>
-                                    <option value="1">EXC-001 - Excavadora Caterpillar 320</option>
-                                    <option value="2">BUL-002 - Bulldozer Komatsu D65</option>
-                                    <option value="3">GRU-003 - Grúa Liebherr LTM 1095</option>
-                                    <option value="4">CAR-004 - Cargadora Frontal CAT 950</option>
+                                    {% for maquina in maquinas %}
+                                        <option value="{{ maquina.id }}"
+                                                data-codigo="{{ maquina.codigo_inventario }}"
+                                                data-ubicacion="{{ maquina.ubicacion }}"
+                                                data-estado="{{ maquina.estado }}"
+                                                {% if maquina_seleccionada and maquina.id == maquina_seleccionada.id %}selected{% endif %}>
+                                            {{ maquina.codigo_inventario }} - {{ maquina.nombre }}
+                                        </option>
+                                    {% endfor %}
                                 </select>
                             </div>
 
@@ -164,12 +169,13 @@
 
                             <div class="mb-3">
                                 <label for="tecnico_asignado" class="form-label">Técnico Asignado *</label>
-                                <select class="form-select" id="tecnico_asignado" name="tecnico_asignado" required>
-                                    <option value="">Seleccionar técnico...</option>
-                                    <option value="1">Juan Carlos Pérez - Especialista Hidráulico</option>
-                                    <option value="2">María González - Técnico Mecánico</option>
-                                    <option value="3">Roberto Silva - Electricista</option>
-                                    <option value="4">Ana Rodríguez - Técnico General</option>
+                                <select class="form-select" id="tecnico_asignado" name="tecnico_asignado">
+                                    <option value="">Asignar automáticamente</option>
+                                    {% for tecnico in usuarios_tecnicos %}
+                                        <option value="{{ tecnico.id }}">{{ tecnico.nombre_completo }} - {{ tecnico.cargo|default:"Técnico" }}</option>
+                                    {% empty %}
+                                        <option value="" disabled>No hay técnicos disponibles</option>
+                                    {% endfor %}
                                 </select>
                             </div>
 
@@ -530,21 +536,28 @@ function saveDraft() {
     alert('Borrador de mantenimiento guardado');
 }
 
-// Form submission
+// Form submission - submit real form
 document.getElementById('maintenanceForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-
     const submitBtn = document.getElementById('submitBtn');
-    const originalText = submitBtn.innerHTML;
 
+    // Validar campos requeridos
+    const maquina = document.getElementById('maquina').value;
+    const titulo = document.getElementById('titulo').value;
+    const descripcion = document.getElementById('descripcion').value;
+    const fechaProgramada = document.getElementById('fecha_programada').value;
+    const tipoMantenimiento = document.querySelector('input[name="tipo"]:checked');
+
+    if (!maquina || !titulo || !descripcion || !fechaProgramada || !tipoMantenimiento) {
+        alert('Por favor complete todos los campos requeridos');
+        return false;
+    }
+
+    // Mostrar loading
     submitBtn.innerHTML = '<i class="spinner-border spinner-border-sm me-2"></i>Programando...';
     submitBtn.disabled = true;
 
-    // Simulate form submission
-    setTimeout(() => {
-        alert('¡Mantenimiento programado exitosamente!');
-        window.location.href = '{% url "maquinaria:mantenimiento_dashboard" %}';
-    }, 2000);
+    // Permitir que el formulario se envíe normalmente
+    return true;
 });
 
 // Add part with Enter key

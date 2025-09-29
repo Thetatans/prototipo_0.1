@@ -12,7 +12,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Críticas</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">3</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ alertas_criticas }}</div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-exclamation-triangle-fill fs-2 text-danger"></i>
@@ -28,7 +28,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Altas</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">8</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ alertas_altas }}</div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-exclamation-circle-fill fs-2 text-warning"></i>
@@ -44,7 +44,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Medias</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">12</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ alertas_medias }}</div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-info-circle-fill fs-2 text-info"></i>
@@ -60,7 +60,7 @@
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
                         <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Resueltas Hoy</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">15</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ alertas_resueltas_hoy }}</div>
                     </div>
                     <div class="col-auto">
                         <i class="bi bi-check-circle-fill fs-2 text-success"></i>
@@ -85,9 +85,9 @@
                         <option>Media</option>
                         <option>Baja</option>
                     </select>
-                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createAlertModal">
+                    <a href="{% url 'maquinaria:crear_alerta' %}" class="btn btn-primary btn-sm">
                         <i class="bi bi-plus"></i> Nueva Alerta
-                    </button>
+                    </a>
                 </div>
             </div>
             <div class="card-body p-0">
@@ -104,83 +104,60 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr class="table-danger">
-                                <td>
-                                    <span class="badge bg-danger">CRÍTICA</span>
-                                </td>
-                                <td>
-                                    <strong>EXC-001</strong><br>
-                                    <small class="text-muted">Excavadora CAT 320</small>
-                                </td>
-                                <td>
-                                    <i class="bi bi-droplet text-danger me-1"></i>Sistema Hidráulico
-                                </td>
-                                <td>Pérdida de presión hidráulica severa</td>
-                                <td>
-                                    <small>hace 15 min</small><br>
-                                    <span class="text-muted">25/01/2024 14:45</span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-danger" onclick="resolveAlert(1)">
-                                        <i class="bi bi-tools"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" onclick="viewAlert(1)">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <tr class="table-warning">
-                                <td>
-                                    <span class="badge bg-warning">ALTA</span>
-                                </td>
-                                <td>
-                                    <strong>BUL-002</strong><br>
-                                    <small class="text-muted">Bulldozer D6T</small>
-                                </td>
-                                <td>
-                                    <i class="bi bi-thermometer-high text-warning me-1"></i>Motor
-                                </td>
-                                <td>Temperatura de motor elevada</td>
-                                <td>
-                                    <small>hace 1 hora</small><br>
-                                    <span class="text-muted">25/01/2024 13:30</span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-warning" onclick="resolveAlert(2)">
-                                        <i class="bi bi-tools"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" onclick="viewAlert(2)">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                </td>
-                            </tr>
-
-                            <tr>
-                                <td>
-                                    <span class="badge bg-info">MEDIA</span>
-                                </td>
-                                <td>
-                                    <strong>GRU-003</strong><br>
-                                    <small class="text-muted">Grúa Grove RT540</small>
-                                </td>
-                                <td>
-                                    <i class="bi bi-calendar-event text-info me-1"></i>Mantenimiento
-                                </td>
-                                <td>Mantenimiento preventivo próximo</td>
-                                <td>
-                                    <small>hace 3 horas</small><br>
-                                    <span class="text-muted">25/01/2024 11:15</span>
-                                </td>
-                                <td>
-                                    <button class="btn btn-sm btn-outline-success" onclick="scheduleService(3)">
-                                        <i class="bi bi-calendar-plus"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-outline-secondary" onclick="viewAlert(3)">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                </td>
-                            </tr>
+                            {% for alerta in alertas %}
+                                <tr class="{% if alerta.prioridad == 'critica' %}table-danger{% elif alerta.prioridad == 'alta' %}table-warning{% endif %}">
+                                    <td>
+                                        {% if alerta.prioridad == 'critica' %}
+                                            <span class="badge bg-danger">CRÍTICA</span>
+                                        {% elif alerta.prioridad == 'alta' %}
+                                            <span class="badge bg-warning">ALTA</span>
+                                        {% elif alerta.prioridad == 'media' %}
+                                            <span class="badge bg-info">MEDIA</span>
+                                        {% elif alerta.prioridad == 'baja' %}
+                                            <span class="badge bg-success">BAJA</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong>{{ alerta.maquina.codigo_inventario }}</strong><br>
+                                        <small class="text-muted">{{ alerta.maquina.nombre }}</small>
+                                    </td>
+                                    <td>
+                                        {% if alerta.tipo == 'mantenimiento' %}
+                                            <i class="bi bi-calendar-event text-info me-1"></i>Mantenimiento
+                                        {% elif alerta.tipo == 'reparacion' %}
+                                            <i class="bi bi-wrench text-danger me-1"></i>Reparación
+                                        {% elif alerta.tipo == 'eficiencia' %}
+                                            <i class="bi bi-speedometer text-warning me-1"></i>Eficiencia
+                                        {% elif alerta.tipo == 'garantia' %}
+                                            <i class="bi bi-shield-check text-success me-1"></i>Garantía
+                                        {% elif alerta.tipo == 'inspeccion' %}
+                                            <i class="bi bi-search text-primary me-1"></i>Inspección
+                                        {% else %}
+                                            <i class="bi bi-exclamation-circle text-secondary me-1"></i>{{ alerta.get_tipo_display }}
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ alerta.titulo }}</td>
+                                    <td>
+                                        <small>{{ alerta.fecha_creacion|timesince }}</small><br>
+                                        <span class="text-muted">{{ alerta.fecha_creacion|date:"d/m/Y H:i" }}</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="resolveAlert({{ alerta.id }})">
+                                            <i class="bi bi-tools"></i>
+                                        </button>
+                                        <a href="{% url 'maquinaria:detalle_alerta' alerta.pk %}" class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted py-4">
+                                        <i class="bi bi-check-circle-fill text-success fs-1"></i><br>
+                                        No hay alertas activas en este momento
+                                    </td>
+                                </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
@@ -196,31 +173,35 @@
                 <h6 class="mb-0">Tipos de Alerta</h6>
             </div>
             <div class="card-body">
-                <div class="alert-type-item mb-2">
-                    <i class="bi bi-droplet text-primary me-2"></i>
-                    <span>Sistema Hidráulico</span>
-                    <span class="badge bg-primary ms-auto">5</span>
-                </div>
-                <div class="alert-type-item mb-2">
-                    <i class="bi bi-thermometer-high text-danger me-2"></i>
-                    <span>Temperatura</span>
-                    <span class="badge bg-danger ms-auto">3</span>
-                </div>
-                <div class="alert-type-item mb-2">
-                    <i class="bi bi-gear text-warning me-2"></i>
-                    <span>Sistema Mecánico</span>
-                    <span class="badge bg-warning ms-auto">8</span>
-                </div>
-                <div class="alert-type-item mb-2">
-                    <i class="bi bi-lightning text-success me-2"></i>
-                    <span>Sistema Eléctrico</span>
-                    <span class="badge bg-success ms-auto">2</span>
-                </div>
-                <div class="alert-type-item">
-                    <i class="bi bi-calendar-event text-info me-2"></i>
-                    <span>Mantenimiento</span>
-                    <span class="badge bg-info ms-auto">12</span>
-                </div>
+                {% for tipo in tipos_alertas %}
+                    <div class="alert-type-item mb-2">
+                        {% if tipo.tipo == 'mantenimiento' %}
+                            <i class="bi bi-calendar-event text-info me-2"></i>
+                            <span>Mantenimiento</span>
+                        {% elif tipo.tipo == 'reparacion' %}
+                            <i class="bi bi-wrench text-danger me-2"></i>
+                            <span>Reparación</span>
+                        {% elif tipo.tipo == 'eficiencia' %}
+                            <i class="bi bi-speedometer text-warning me-2"></i>
+                            <span>Eficiencia</span>
+                        {% elif tipo.tipo == 'garantia' %}
+                            <i class="bi bi-shield-check text-success me-2"></i>
+                            <span>Garantía</span>
+                        {% elif tipo.tipo == 'inspeccion' %}
+                            <i class="bi bi-search text-primary me-2"></i>
+                            <span>Inspección</span>
+                        {% else %}
+                            <i class="bi bi-exclamation-circle text-secondary me-2"></i>
+                            <span>{{ tipo.tipo|title }}</span>
+                        {% endif %}
+                        <span class="badge bg-primary ms-auto">{{ tipo.count }}</span>
+                    </div>
+                {% empty %}
+                    <div class="text-center text-muted py-3">
+                        <i class="bi bi-check-circle text-success"></i><br>
+                        <small>No hay alertas por categoría</small>
+                    </div>
+                {% endfor %}
             </div>
         </div>
 
@@ -388,8 +369,26 @@
 <script>
 function resolveAlert(id) {
     if (confirm('¿Marcar esta alerta como resuelta?')) {
-        alert(`Alerta ${id} marcada como resuelta`);
-        location.reload();
+        fetch(`/maquinaria/alertas/${id}/resolver/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Error al resolver la alerta');
+            console.error('Error:', error);
+        });
     }
 }
 

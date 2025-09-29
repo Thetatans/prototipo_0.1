@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.db.models import Q, Count
 from django.core.paginator import Paginator
 from django.utils import timezone
-from .models import Maquina, CategoriaMaquina, Proveedor, AlertaMaquina, HistorialMaquina
+from .models import Maquina, CategoriaMaquina, Proveedor, AlertaMaquina, HistorialMaquina, MantenimientoProgramado
 from usuarios.models import Usuario
 
 # Dashboard
@@ -303,7 +303,7 @@ def crear_proveedor_view(request):
 # Alertas
 @login_required
 def alertas_view(request):
-    """Lista de alertas con filtros"""
+    """Lista de alertas con filtros y estadísticas reales"""
     alertas_list = AlertaMaquina.objects.select_related('maquina').all()
 
     # Filtros
@@ -320,6 +320,35 @@ def alertas_view(request):
     if tipo_filtro:
         alertas_list = alertas_list.filter(tipo=tipo_filtro)
 
+    # Estadísticas reales de alertas
+    from django.utils import timezone
+    from datetime import date
+
+    alertas_criticas = AlertaMaquina.objects.filter(
+        estado='activa', prioridad='critica'
+    ).count()
+
+    alertas_altas = AlertaMaquina.objects.filter(
+        estado='activa', prioridad='alta'
+    ).count()
+
+    alertas_medias = AlertaMaquina.objects.filter(
+        estado='activa', prioridad='media'
+    ).count()
+
+    alertas_resueltas_hoy = AlertaMaquina.objects.filter(
+        estado='resuelta',
+        fecha_resolucion__date=date.today()
+    ).count()
+
+    # Estadísticas por tipo
+    from django.db.models import Count
+    tipos_alertas = AlertaMaquina.objects.filter(
+        estado='activa'
+    ).values('tipo').annotate(
+        count=Count('id')
+    ).order_by('-count')
+
     # Paginación
     paginator = Paginator(alertas_list.order_by('-fecha_creacion'), 15)
     page = request.GET.get('page')
@@ -331,21 +360,136 @@ def alertas_view(request):
         'estado_filtro': estado_filtro,
         'prioridad_filtro': prioridad_filtro,
         'tipo_filtro': tipo_filtro,
+        'alertas_criticas': alertas_criticas,
+        'alertas_altas': alertas_altas,
+        'alertas_medias': alertas_medias,
+        'alertas_resueltas_hoy': alertas_resueltas_hoy,
+        'tipos_alertas': tipos_alertas,
     }
 
     return render(request, 'maquinaria/alertas.html', context)
 
 @login_required
 def crear_alerta_view(request):
-    """Crear nueva alerta"""
+    """Crear nueva alerta con datos reales"""
+    from .forms import AlertaMaquinaForm
+    import json
+
     if request.method == 'POST':
-        # Lógica de creación
-        messages.success(request, 'Alerta creada exitosamente')
-        return redirect('maquinaria:alertas')
+        try:
+            # Obtener datos del formulario
+            maquina_id = request.POST.get('maquina')
+            tipo_alerta = request.POST.get('tipo_alerta', 'mantenimiento')
+            titulo = request.POST.get('titulo')
+            prioridad = request.POST.get('prioridad', 'media')
+            descripcion = request.POST.get('descripcion')
+            categoria = request.POST.get('categoria')
+            fecha_deteccion = request.POST.get('fecha_deteccion')
+            detectado_por = request.POST.get('detectado_por', 'sistema')
+            ubicacion_falla = request.POST.get('ubicacion_falla', '')
+            impacto_operacional = request.POST.get('impacto_operacional', 'minimo')
+            riesgo_seguridad = request.POST.get('riesgo_seguridad', 'nulo')
+            tecnico_asignado = request.POST.get('tecnico_asignado')
+            fecha_estimada = request.POST.get('fecha_estimada')
+
+            # Obtener síntomas y acciones inmediatas
+            sintomas = request.POST.getlist('sintomas')
+            acciones_inmediatas = request.POST.getlist('acciones_inmediatas')
+
+            # Validar datos requeridos
+            if not all([maquina_id, titulo, descripcion]):
+                messages.error(request, 'Por favor complete todos los campos requeridos.')
+                return redirect('maquinaria:crear_alerta')
+
+            # Obtener la máquina
+            try:
+                maquina = Maquina.objects.get(pk=maquina_id)
+            except Maquina.DoesNotExist:
+                messages.error(request, 'La máquina seleccionada no existe.')
+                return redirect('maquinaria:crear_alerta')
+
+            # Mapear tipo de alerta al modelo
+            tipo_mapping = {
+                'falla': 'reparacion',
+                'mantenimiento': 'mantenimiento',
+                'operacional': 'eficiencia'
+            }
+            tipo_modelo = tipo_mapping.get(tipo_alerta, 'mantenimiento')
+
+            # Crear la alerta
+            alerta = AlertaMaquina.objects.create(
+                maquina=maquina,
+                tipo=tipo_modelo,
+                prioridad=prioridad,
+                titulo=titulo,
+                descripcion=descripcion,
+                estado='activa'
+            )
+
+            # Obtener usuario creador
+            try:
+                usuario = Usuario.objects.get(numero_documento=request.user.username)
+                alerta.created_by = usuario
+                alerta.save()
+            except Usuario.DoesNotExist:
+                pass
+
+            # Crear entrada en el historial
+            datos_adicionales = {
+                'categoria': categoria,
+                'detectado_por': detectado_por,
+                'ubicacion_falla': ubicacion_falla,
+                'sintomas': sintomas,
+                'impacto_operacional': impacto_operacional,
+                'riesgo_seguridad': riesgo_seguridad,
+                'acciones_inmediatas': acciones_inmediatas,
+                'tecnico_asignado': tecnico_asignado,
+                'fecha_estimada': fecha_estimada
+            }
+
+            HistorialMaquina.objects.create(
+                maquina=maquina,
+                tipo_evento='alerta_creada',
+                descripcion=f'Alerta creada: {titulo} (Prioridad: {prioridad})',
+                valor_nuevo=json.dumps(datos_adicionales, ensure_ascii=False),
+                usuario=alerta.created_by
+            )
+
+            # Actualizar estado de máquina si es crítica
+            if prioridad in ['critica', 'emergencia']:
+                estado_anterior = maquina.estado
+                if 'suspender_operacion' in acciones_inmediatas:
+                    maquina.estado = 'fuera_servicio'
+                    maquina.save()
+
+                    # Crear entrada adicional en historial para cambio de estado
+                    HistorialMaquina.objects.create(
+                        maquina=maquina,
+                        tipo_evento='cambio_estado',
+                        descripcion=f'Estado cambiado automáticamente por alerta crítica: {titulo}',
+                        valor_anterior=estado_anterior,
+                        valor_nuevo=maquina.estado,
+                        usuario=alerta.created_by
+                    )
+
+            messages.success(request, f'Alerta "{titulo}" creada exitosamente para {maquina.codigo_inventario}')
+            return redirect('maquinaria:detalle_alerta', pk=alerta.pk)
+
+        except Exception as e:
+            messages.error(request, f'Error al crear la alerta: {str(e)}')
+            return redirect('maquinaria:crear_alerta')
+
+    # GET request - mostrar formulario
+    try:
+        # Intentar obtener usuarios con filtro, si falla usar todos los usuarios
+        usuarios_tecnicos = Usuario.objects.all().order_by('first_name', 'last_name')[:20]  # Limitar a 20 para performance
+    except Exception:
+        usuarios_tecnicos = []
 
     context = {
         'title': 'Crear Alerta',
-        'maquinas': Maquina.objects.all(),
+        'maquinas': Maquina.objects.select_related('categoria').all().order_by('codigo_inventario'),
+        'usuarios_tecnicos': usuarios_tecnicos,
     }
 
     return render(request, 'maquinaria/crear_alerta.html', context)
@@ -366,6 +510,14 @@ def resolver_alerta(request, pk):
             pass
 
         alerta.save()
+
+        # Crear entrada en el historial
+        HistorialMaquina.objects.create(
+            maquina=alerta.maquina,
+            tipo_evento='alerta_resuelta',
+            descripcion=f'Alerta resuelta: {alerta.titulo}',
+            usuario=alerta.resuelto_por
+        )
 
         return JsonResponse({'success': True, 'message': 'Alerta resuelta exitosamente'})
 
@@ -389,32 +541,40 @@ def mantenimiento_dashboard_view(request):
     """Dashboard de mantenimiento con datos reales"""
     from datetime import date, timedelta
 
-    # Estadísticas de mantenimiento
-    hoy = date.today()
+    # Estadísticas de mantenimiento programado
+    hoy = timezone.now().date()
     esta_semana = hoy + timedelta(days=7)
 
-    mantenimientos_hoy = Maquina.objects.filter(
-        proximo_mantenimiento=hoy
+    # Mantenimientos programados para hoy
+    mantenimientos_hoy = MantenimientoProgramado.objects.filter(
+        fecha_programada__date=hoy,
+        estado='programado'
     ).count()
 
-    mantenimientos_pendientes = Maquina.objects.filter(
-        proximo_mantenimiento__lte=esta_semana,
-        proximo_mantenimiento__gte=hoy
+    # Mantenimientos pendientes esta semana
+    mantenimientos_pendientes = MantenimientoProgramado.objects.filter(
+        fecha_programada__date__lte=esta_semana,
+        fecha_programada__date__gte=hoy,
+        estado='programado'
     ).count()
 
-    mantenimientos_vencidos = Maquina.objects.filter(
-        proximo_mantenimiento__lt=hoy
-    ).exclude(proximo_mantenimiento__isnull=True).count()
+    # Mantenimientos vencidos
+    mantenimientos_vencidos = MantenimientoProgramado.objects.filter(
+        fecha_programada__date__lt=hoy,
+        estado='programado'
+    ).count()
 
     # Actividades recientes de mantenimiento
     actividades_mantenimiento = HistorialMaquina.objects.filter(
         tipo_evento__in=['mantenimiento', 'reparacion']
     ).select_related('maquina', 'usuario').order_by('-fecha_evento')[:10]
 
-    # Máquinas que necesitan mantenimiento urgente
-    mantenimiento_urgente = Maquina.objects.filter(
-        proximo_mantenimiento__lte=hoy + timedelta(days=3)
-    ).exclude(proximo_mantenimiento__isnull=True)[:10]
+    # Mantenimientos programados próximos (usando el nuevo modelo)
+    mantenimientos_proximos = MantenimientoProgramado.objects.filter(
+        fecha_programada__date__lte=hoy + timedelta(days=7),
+        fecha_programada__date__gte=hoy,
+        estado='programado'
+    ).select_related('maquina', 'tecnico_asignado').order_by('fecha_programada')[:10]
 
     # Alertas de mantenimiento activas
     alertas_mantenimiento = AlertaMaquina.objects.filter(
@@ -423,9 +583,25 @@ def mantenimiento_dashboard_view(request):
     ).select_related('maquina')[:5]
 
     # KPIs básicos de mantenimiento
-    total_maquinas = Maquina.objects.count()
-    maquinas_al_dia = total_maquinas - mantenimientos_vencidos
-    cumplimiento_porcentaje = round((maquinas_al_dia / total_maquinas * 100) if total_maquinas > 0 else 0, 1)
+    total_mantenimientos_programados = MantenimientoProgramado.objects.filter(
+        estado__in=['programado', 'en_progreso']
+    ).count()
+
+    if total_mantenimientos_programados > 0:
+        mantenimientos_al_dia = total_mantenimientos_programados - mantenimientos_vencidos
+        cumplimiento_porcentaje = round((mantenimientos_al_dia / total_mantenimientos_programados * 100), 1)
+    else:
+        cumplimiento_porcentaje = 100.0
+
+    # Técnicos disponibles/ocupados
+    from django.db.models import Case, When, Value, CharField
+    tecnicos_estado = Usuario.objects.annotate(
+        estado_actual=Case(
+            When(mantenimientos_asignados__estado='en_progreso', then=Value('ocupado')),
+            default=Value('disponible'),
+            output_field=CharField()
+        )
+    ).values('id', 'nombres', 'apellidos', 'cargo', 'estado_actual')[:10]
 
     context = {
         'title': 'Dashboard Mantenimiento',
@@ -433,17 +609,127 @@ def mantenimiento_dashboard_view(request):
         'mantenimientos_pendientes': mantenimientos_pendientes,
         'mantenimientos_vencidos': mantenimientos_vencidos,
         'actividades_mantenimiento': actividades_mantenimiento,
-        'mantenimiento_urgente': mantenimiento_urgente,
+        'mantenimientos_proximos': mantenimientos_proximos,
         'alertas_mantenimiento': alertas_mantenimiento,
         'cumplimiento_porcentaje': cumplimiento_porcentaje,
-        'total_maquinas': total_maquinas,
+        'tecnicos_estado': tecnicos_estado,
     }
 
     return render(request, 'maquinaria/mantenimiento_dashboard.html', context)
 
 @login_required
-def programar_mantenimiento_view(request, pk):
-    return render(request, 'maquinaria/programar_mantenimiento.html', {'title': 'Programar Mantenimiento'})
+def programar_mantenimiento_view(request, pk=None):
+    """Programar nuevo mantenimiento con datos reales"""
+    import json
+    from datetime import timedelta
+
+    if request.method == 'POST':
+        try:
+            # Obtener datos del formulario
+            maquina_id = request.POST.get('maquina')
+            tipo = request.POST.get('tipo', 'preventivo')
+            titulo = request.POST.get('titulo')
+            descripcion = request.POST.get('descripcion')
+            prioridad = request.POST.get('prioridad', 'media')
+            fecha_programada = request.POST.get('fecha_programada')
+            duracion_estimada = request.POST.get('duracion_estimada', '02:00:00')  # Default 2 horas
+            tecnico_asignado_id = request.POST.get('tecnico_asignado')
+
+            # Obtener listas de componentes, herramientas y repuestos
+            componentes = request.POST.getlist('componentes')
+            herramientas = request.POST.getlist('herramientas')
+            repuestos = request.POST.getlist('repuestos')
+            procedimientos = request.POST.get('procedimientos', '')
+            costo_estimado = request.POST.get('costo_estimado')
+
+            # Validar datos requeridos
+            if not all([maquina_id, titulo, descripcion, fecha_programada]):
+                messages.error(request, 'Por favor complete todos los campos requeridos.')
+                return redirect('maquinaria:programar_mantenimiento')
+
+            # Obtener la máquina
+            try:
+                maquina = Maquina.objects.get(pk=maquina_id)
+            except Maquina.DoesNotExist:
+                messages.error(request, 'La máquina seleccionada no existe.')
+                return redirect('maquinaria:programar_mantenimiento')
+
+            # Obtener técnico si fue asignado
+            tecnico_asignado = None
+            if tecnico_asignado_id:
+                try:
+                    tecnico_asignado = Usuario.objects.get(pk=tecnico_asignado_id)
+                except Usuario.DoesNotExist:
+                    pass
+
+            # Convertir duración estimada
+            try:
+                horas, minutos, segundos = duracion_estimada.split(':')
+                duracion_td = timedelta(hours=int(horas), minutes=int(minutos), seconds=int(segundos))
+            except:
+                duracion_td = timedelta(hours=2)  # Default 2 horas
+
+            # Crear el mantenimiento programado
+            mantenimiento = MantenimientoProgramado.objects.create(
+                maquina=maquina,
+                tipo=tipo,
+                titulo=titulo,
+                descripcion=descripcion,
+                prioridad=prioridad,
+                fecha_programada=fecha_programada,
+                duracion_estimada=duracion_td,
+                tecnico_asignado=tecnico_asignado,
+                componentes_revisar=componentes,
+                herramientas_necesarias=herramientas,
+                repuestos_necesarios=repuestos,
+                procedimientos=procedimientos,
+                costo_estimado=float(costo_estimado) if costo_estimado else None
+            )
+
+            # Obtener usuario creador
+            try:
+                usuario = Usuario.objects.get(numero_documento=request.user.username)
+                mantenimiento.created_by = usuario
+                mantenimiento.save()
+            except Usuario.DoesNotExist:
+                pass
+
+            # Crear entrada en el historial
+            HistorialMaquina.objects.create(
+                maquina=maquina,
+                tipo_evento='mantenimiento',
+                descripcion=f'Mantenimiento programado: {titulo} para {fecha_programada}',
+                usuario=mantenimiento.created_by
+            )
+
+            messages.success(request, f'Mantenimiento "{titulo}" programado exitosamente para {maquina.codigo_inventario}')
+            return redirect('maquinaria:mantenimiento_dashboard')
+
+        except Exception as e:
+            messages.error(request, f'Error al programar el mantenimiento: {str(e)}')
+            return redirect('maquinaria:programar_mantenimiento')
+
+    # GET request - mostrar formulario
+    maquina_seleccionada = None
+    if pk:
+        try:
+            maquina_seleccionada = Maquina.objects.get(pk=pk)
+        except Maquina.DoesNotExist:
+            pass
+
+    try:
+        usuarios_tecnicos = Usuario.objects.all().order_by('nombres', 'apellidos')[:20]
+    except Exception:
+        usuarios_tecnicos = []
+
+    context = {
+        'title': 'Programar Mantenimiento',
+        'maquinas': Maquina.objects.select_related('categoria').all().order_by('codigo_inventario'),
+        'maquina_seleccionada': maquina_seleccionada,
+        'usuarios_tecnicos': usuarios_tecnicos,
+    }
+
+    return render(request, 'maquinaria/programar_mantenimiento.html', context)
 
 # Importar/Exportar
 @login_required
